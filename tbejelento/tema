@@ -1,0 +1,32 @@
+
+A bonyolult geometriájú mûszaki objektumok, például autókarosszériák tervezése
+úgy történik, hogy egy fizikai modellen nagy sûrûségû méréseket végeznek. A
+méréseket például laser scanner-rel végzik. A mérések alapján kell elôállítani
+az objektum matematikai reprezentációját. A feladat megoldása számos
+számítástechnikai és matematikai problémát vet fel, ezek vizsgálata és
+számítógépes kísérletek végzése a diploma munka célja. Az elvégzendô
+részfeladatok a következôk:
+
+1., Tanulmányozza és foglalja össze a felület-rekonstrukcióval kapcsolatos
+szakirodalmat és vázolja az eddigi megoldásokat.
+
+2., Reprezentáció: Vizsgálja meg a felületillesztéshez használható, és a
+jelenlegi mûszaki tervezô rendszerekhez illeszkedô reprezentációkat és
+határozza meg azok paramétereit (knot eloszlás, fokszám, control pontok
+száma).
+
+3., Funkcionálok: Tanulmányozza a minimalizálandó funkcionálok különbözô 
+fajtáit a feladat megoldhatósága és a felület geometria tulajdonságainak
+szempontjából.
+
+4., Paraméterezés: Dolgozzon ki módszert a mérési pontoknak megfelelô felületi
+pontok paramétereinek meghatározására, illetve minimalizálás közbeni
+javítására.
+
+5., Feltételes minimalizálás: Dolgozza ki a felület illesztést, funkcionál
+minimalizálást kapcsolódó felületek esetére, különbözô folytonossági
+feltételek mellett.
+
+Az algoritmusokat számítógépes kísérletekkel ellenôrizze, hasonlítsa össze
+azokat hatékonyság, felület alak, gyorsaság szempontjából.
+

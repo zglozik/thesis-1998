@@ -1,0 +1,4229 @@
+
+\documentclass[titlepage,a4paper,11pt,oneside,final]{book}
+\usepackage{t1enc}
+\usepackage[latin2]{inputenc}
+\usepackage[magyar]{babel}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{ifthen}
+\usepackage[mathscr]{eucal}	% mathscr karaktertípushoz
+\usepackage{graphics}
+\usepackage{subfigure}
+
+\newtheorem{defenv}{Definíció}
+\newtheorem{theorem}{Tétel}
+\newenvironment{proof}{\textbf{Bizonyítás.}}{$\blacksquare$}
+\newenvironment{corollary}{\textbf{Következmény.}}{}
+
+
+\newcommand{\N}[3]{\ensuremath{ N_{#1}^{\ifthenelse{\equal{#2}{}}{}{(#2)}}
+{\ifthenelse{\equal{#3}{}}{}{(#3)}} } }
+\newcommand{\Der}[2]{\ensuremath{\frac{\partial #1}{\partial #2}}}
+\newcommand{\Norma}[1]{\ensuremath{\left\|#1\right\|}}
+\newcommand{\Abs}[1]{\ensuremath{\left|#1\right|}}
+
+\setcounter{tocdepth}{3}
+
+\graphicspath{{./surfaces/approx/}{./surfaces/sample/}{./fig/}{./graf/}}
+\begin{document}
+
+\begin{titlepage}
+
+\vspace*{100pt}
+\begin{center}
+\begin{huge}\textsc{%
+bonyolult geometriájú felületek matematikai
+reprezentációjának elõállítása mérési hibákkal terhelt diszkrét adatokból
+}\end{huge}
+\vspace{4ex}
+
+\begin{Large}
+\begin{tabular}{ll}
+\textsc{Készítette:} & Éles András és Glózik Zoltán \\
+\textsc{Témavezetõ:} & Dr Renner Gábor, MTA SZTAKI
+\end{tabular}
+\end{Large}
+\end{center}
+
+\bigskip
+\begin{center}
+\large\textsc{%
+Eötvös Loránd Tudományegyetem\\
+Természettudományi Kar\\
+Informatika Tanszékcsoport}
+\end{center}
+\vfill
+\rightline{Budapest, \today}
+\end{titlepage}
+
+\pagenumbering{Roman}
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Bevezetés}
+%\setlength{\parskip}{0.5ex plus 2pt minus 3pt}
+\pagenumbering{arabic}
+
+A geometriai modellezés feladata a térbeli testek és szabad formájú felületek
+matematikai reprezentációjának elõállítása. Ennek a matematikai
+reprezentációnak a használatával lehetõség nyílik a térbeli testek és felületek
+vizsgálatára, azok jellemzésére különbözõ természetes szempontok szerint. A
+tárgyak számítógépen történõ ábrázolásának egyik lehetõsége lehetne, hogy a
+tárgyak vagy felületek pontjait tároljuk el, valamilyen sûrû
+mintavételezéssel. Ehhez azonban nagyon sok memória kellene, a kapott
+felületet nem tudnánk tetszõleges pontossággal visszakapni, és a felületet nem
+tudnánk vizsgálni. Egy matematikai reprezentációval adott felület már
+könnyebben kezelhetõ, a felület eltárolásához szükséges memóriaméret kisebb
+és könnyen végrehajthatunk módosításokat a felületen.
+
+Az ipari alkalmazásokban használt szerszámgépek a tárgyakat egy matematikai
+reprezentáció alapján készítik el. Ez a matematikai reprezentáció a mérnökök
+és formatervezõk munkájának eredményeként áll elõ. Gyakran elõforduló eset,
+hogy már valamilyen meglévõ tárgyat akarunk legyártatni, és a tárgyról
+semmilyen terv nem áll rendelkezésre. Például egy autó karosszériájának
+tervezésekor a formatervezõk elõször valamilyen természetes anyagból
+elõállítják a karosszériát, majd komoly mérnöki munkával kell elkészíteni
+ugyanennek a felületnek a matematikai reprezentációját, mivel a gyártás csak
+ezzel végezhetõ el. Ez úgy történik, hogy egy letapogató berendezéssel
+valamilyen rendszer szerint mintát vesznek a megformázott karosszériáról, majd
+kapnak egy részben struktúrált pontfelhõt, ami még mérési hibákat is
+tartalmaz. Ebbõl kell elõállítani azokat a felület darabokat, amelyeknek
+nagyon kemény követelményeknek kell megfelelniük. Vizsgálják a felület
+simaságát, több rendbeli folytonosságát, a fénytörését, szépségét. Ennek a
+munkafolyamatnak nagyon sok lépése még ma is ,,kézzel'' történik, gyakran
+próbálgatással. Ennek a tervezési folyamatnak a neve \emph{reverse
+engineering}. A folyamat a következõ lépésekbõl áll:
+
+\begin{enumerate}
+\item \emph{A tárgy letapogatása.} Tisztában kell lennünk a mérési hibák
+mértékével, meg kell határozni a mintavételezés ,,finomságát''. Minél sûrûbben
+helyezkednek el a mérési pontok, annál több adatot kell eltárolnunk, amihez
+több memóriára van szükség és a felület elõállítása is több idõt vesz igénybe,
+viszont a felület apróbb eltéréseit is érzékelni tudjuk. 
+
+\item \emph{Mérési hibák csökkentése.} A kapott adathalmazon a feldolgozás
+elõtt lefuttathatunk egy kezdeti szûrést. A mérési hiba miatt elõfordulhat,
+hogy egy pont viszonylag távol kerül a többitõl. Ezeket a pontokat célszerû
+eltüntetni a ponthalmazból, vagy módosítani õket úgy, hogy csak kis mértékben
+térjenek el a környezetüktõl. Ha ezek a nem valós adatokat tükrözõ pontok
+bennmaradnak a ponthalmazban, akkor késõbb esetleg nagy mértékben torzíthatják
+az elõállított felületet.
+
+\item \emph{Kezdeti paraméterek meghatározása.} Ki kell választani egy
+megfelelõ reprezentációt a felülethez, majd meg kell határozni ennek a
+reprezentációnak azokat a paramétereit, amelyeket konstansként tekintünk az
+approximációs lépés során. Ezeknek a paramétereknek a meghatározása
+automatikusan nehezen megoldható, gyakran a tapasztalatok és a próbálgatás
+adják a megoldást.
+
+\item \emph{Approximáció.} A választott matematikai reprezentáció szabad
+paramétereinek megválasztása oly módon, hogy az \emph{valamilyen} szempont
+szerint a legjobb közelítését adja az eredeti felületnek. Fontos követelmény,
+hogy az elõálló felület pontjai az eredeti felület pontjainak a közelében
+helyezkedjenek el, és biztosítani kell azt is, hogy az elõálló felület
+megfeleljen a simasági követelményeknek.
+
+\item \emph{Paraméter korrekció.} Az approximáció után kiderülhet, hogy nem
+megfelelõ kötött paramétereket határoztunk meg kezdetben. Ekkor ezek
+módosítása után ismét el kell végezni az approximációt.
+\end{enumerate}
+
+% ide kellene egy jó nagy ábra a folyamatról (ezzel is hosszabb, különben
+% minek kellene)
+% plusz egy ábra egy offset felületrõl
+
+A másik nagy gyakorlati alkalmazás az offset felületek elõállítása. Egy adott
+felülethez létrehozott offset felület minden pontja ugyanakkora, elõre
+rögzített távolságra helyezkedik el a kiinduló felülettõl. Az offset felület
+meghatározására például azért van szükség, mert a szerszámgép marófejének a
+középpontja a nyersanyagtól valamilyen rögzített távolságra halad. Ekkor a
+legyártandó felület reprezentációjának ismerete önmagában kevés, abból meg
+kell határoznunk azt az offset felületet, amelyen a marófej középpontjának
+végig kell haladnia. Az offset felület gyakran csak a kiinduló felület
+reprezentációjánál bonyolultabb reprezentációval adható meg, így az analitikus
+elõállítás nem ad megfelelõ eredményt.  Az offset felületet a korábban leírt
+lépésekhez hasonlóan meg tudjuk határozni, ha mintát veszünk az eredeti
+felületrõl, a kapott pontokat eltoljuk a felületre merõleges irányban, majd
+approximációt végzünk. Ennek a problémának a megoldása általában könnyebb,
+mert az eredeti felületnek a reprezentációja már rendelkezésre áll és mérési
+hibákkal sem kell törõdnünk.
+
+A szakdolgozat célja a felületek elõállítása során felmerülõ részproblémák
+megoldására használható algoritmusok számítógépes megvalósítása és azok
+vizsgálata. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Felületek reprezentációja}
+
+A célunk egy olyan reprezentáció használata, amelynek segítségével a bonyolult
+geometriájú felületek matematikailag ,,jól'' kezelhetõk. Ez azonban mást és
+mást jelenthet, attól függõen, hogy milyen célból vizsgáljuk a
+felületeket. Más reprezentációt kell választanunk akkor, ha az alakzatok gyors
+megjelenítése a cél, és más reprezentációt választanánk, ha felületek közös
+pontjait akarnánk meghatározni. Elképzelhetõ, hogy egy adott feladatot nem is
+tudunk megoldani az egyik reprezentációval adott felületen, vagy csak nagyon
+rossz hatékonysággal, míg más reprezentációk esetén jól megoldhatók. Három
+különbözõ reprezentációt vizsgálunk meg több szempont szerint, de számunkra
+csak az egyik lesz igazán megfelelõ.
+
+\section{A reprezentációk három csoportja}
+
+\subsection*{Explicit függvény}
+
+Ez a legegyszerûbb felület megadási forma, a reprezentáció egy \( f \colon
+\mathbb{R}^2 \mapsto \mathbb{R} \) függvénnyel adott. Pédául egy 5 egység
+sugarú félgömb ábrázolása a következõképpen történne: \( f(x,y) = \sqrt{25 -
+x^2 - y^2} \).
+
+Kiértékelhetõség szempontjából akkor jó ez a megadási mód, ha a \(z\) értéket
+akarjuk meghatározni az \(x\) és \(y\) ismeretében. Más esetben egyenletet
+kell megoldani, ami nem is biztos, hogy egyértelmû. Nehézkes annak a
+meghatározása is, hogy egy adott \((x,y,z)\) térbeli pont rajta van-e a
+felületen. Nem adhatunk meg olyan felületeket, amelyek két különbözõ
+pontjához ugyanaz az \((x,y)\) pont tartozik. Az explicit megadási módszert a
+gyakorlatban nem is alkalmazzák geometriai modellezési célokra.
+
+\subsection*{Implicit függvény}
+
+Egy felület implicit függvénnyel történõ ábrázolásakor a felület pontjait egy
+\(G(x,y,z) = 0\) alakú egyenlet megoldásai adják. Egy 5 egység sugarú gömb
+implicit egyenlete a következõ lehetne: \( x^2 + y^2 + z^2 = 25 \).
+
+A felület pontjainak meghatározása szempontjából ez a reprezentáció nagyon
+rossz, mivel egyenleteket kell megoldani a hiányzó koordináták
+megtalálásához. De nagyon könnyen ellenõrizhetõ egy adott térbeli pont
+felülethez tartozása, ehhez csak a \(G\) függvény kiértékelésére van szükség
+az adott pontban. Ezzel a reprezentációval sokkal többféle felület állítható
+elõ, mint egy explicit függvénnyel.
+
+\subsection*{Parametrikus felület}
+
+Egy felület parametrikus reprezentációja egy \( f \colon
+\mathbb{R}^2\mapsto\mathbb{R}^3 \) függvény, ami a paramétertér pontjait
+képezi le térbeli pontokra. A felületet a függvény értékkészletében szereplõ
+pontok adják. Egy 5 egység sugarú gömböt a következõ parametrikus felület ad
+meg:
+\[  u,v\in[0,2\pi],\;
+f(u,v) = \left[ \begin{array}{c}
+		    5\cos(v)\cos(u) \\
+		    5\cos(v)\sin(u) \\
+		    5\sin(v)
+		    \end{array}\right],
+\]
+ahol $u$ és $v$ a felület paraméterei. Ennek a reprezentációnak az elõnye,
+hogy a paramétertér bejárásával a felület pontjait meg tudjuk határozni, csak
+egy explicit függvényt kell kiértékelni. Nehéz annak a kérdésnek a
+megválaszolása, hogy egy adott pont rajta van-e a felületen. Ha már adott egy
+parametrikus felület, akkor könnyû rajta lineáris transzformációkat és
+eltolásokat alkalmazni. A gyakorlati alkalmazások 80\%-ában ezt a
+reprezentációt használják, a maradék 20\%-ban pedig az implicit megadási
+formát, az explicit módszert szinte egyáltalán nem használják felületek
+ábrázolására. Mi is parametrikus felületet szeretnénk elõállítani a mért
+adatokból.
+
+\section{Differenciálgeometriai összefoglaló}
+
+Ebben a szakaszban röviden áttekintjük a parametrikus felületekkel kapcsolatos
+alapvetõ definíciókat. Felületeket jellemzõ mennyiségeket vezetünk
+be. Feltételezzük, hogy az olvasó tisztában van a parametrikus görbékkel
+kapcsolatos alapvetõ definíciókkal.
+
+\begin{defenv}
+Az $r\colon[0,1]^2 \mapsto \mathbb{R}^3$ függvény \emph{elemi felület}, ha
+kölcsönösen egyértelmû és folytonos. A \emph{felület} olyan ponthalmaz,
+amely összerakható elemi felületekbõl.
+\end{defenv}
+
+A továbbiakban feltesszük, hogy az $r\colon[0,1]^2 \mapsto \mathbb{R}^3$ elemi
+felület legalább egyszer folytonosan deriválható és $r_u(u,v) \nparallel
+r_v(u,v)$. Ez a feltétel biztosítja számunkra, hogy a felület minden
+pontjában létezik normális vektor, a felületre merõleges irány.
+
+\begin{defenv}
+Legyen $u,v\colon[0,1]\mapsto[0,1]$ folytonos függvények. Ekkor a $g(t) =
+r(u(t),v(t)), t\in[0,1]$ függvény az $r$ felület egy \emph{felületi görbéje}.
+Az $m(t) = r(t,v)$ és $n(t) = r(u,t)$ felületi görbéket \emph{paraméter
+vonalaknak} nevezzük.
+\end{defenv}
+
+A felületek ábrázolásának egyik gyakori módja, hogy néhány paramétervonalat
+jelenítenek meg. Ezzel a felületnek egy drótvázas ábrázolását kapjuk. A
+felület egy adott $r(u,v)$ pontján átmenõ felületi görbék érintõi egy síkban
+vannak, ez a sík az $r$ felület $(u,v)$ pontbeli \emph{érintõ síkja}. 
+
+\begin{defenv}
+Az $r$ \emph{felület normálisa} egy adott $(u,v)$ pontban a felület $(u,v)$
+pontjához tartozó érintõ síkra merõleges egységvektor:
+\[ m = \frac{r_u \times r_v}{|r_u \times r_v|}. \]
+\end{defenv}
+
+A felületek pontjaiban egy jellemzõ tulajdonság, hogy ott mennyire hajlik a
+felület egy adott felületi görbe mentén.
+
+\begin{defenv}
+Egy felületi görbe adott $P$ pontjához tartozó érintõ irány és a felület $P$
+pontjabeli felületi normálisa által meghatározott sík a felületi görbéhez
+tartozó $P$ pontbeli \emph{normálsík}, egy normálsík által a felületbõl
+kimetszett görbe a \emph{normálmetszet}. Egy normálmetszethez tartozó görbület
+a \emph{normálgörbület}, egy adott ponthoz tartozó normálgörbületek minimumát
+és maximumát \emph{fõgörbületeknek}, a hozzájuk tartozó irányokat pedig
+\emph{fõirányoknak} nevezzük. 
+\end{defenv}
+
+\begin{defenv}
+\emph{Elsõ alapmennyiségek}:
+\[
+E = r_u^2, \quad F = \left<r_u,r_v\right>, \quad G = r_v^2.
+\]
+\emph{Elsõ alapmátrix}:
+\[
+\mathscr{G} = \left[\begin{array}{cc} E & F \\ F & G \end{array}\right].
+\]
+\end{defenv}
+A $g(t) = r(u(t),v(t))$ felületi görbe ívhossza:
+\[
+s = \int_0^1 |\dot{g}|\,dt = \int_0^1 \sqrt{r_u^2\dot{u}^2 +
+2\left<r_u,r_v\right>\dot{u}\dot{v} + r_v^2\dot{v}^2} \,dt.
+\]
+A felületi görbe ívhossza felírható az elsõ alapmennyiségekkel is a következõ
+módon:
+\[
+s = \int_0^1 \sqrt{E \dot{u}^2 + 2F \dot{u}\dot{v} + G \dot{v}^2} \,dt.
+\]
+Egy $r$ felület felszíne az elsõ alapmennyiségekkel felírva:
+\[
+\int_0^1 \int_0^1 \sqrt{EG-F^2}\, dudv.
+\]
+
+\begin{defenv}
+Az $r$ kétszer folytonosan deriválható felület $(u,v)$ pontbeli \emph{második
+alapmennyiségei}:
+\[L = \left<r_{uu},m\right>, \quad M = \left<r_{uv},m\right>,
+\quad N = \left<r_{vv},m\right>,\]
+ahol $m$ az $r(u,v)$ ponthoz tartozó felületi normális. A \emph{második
+alapmátrix}:
+\[
+\mathscr{D} = \left[\begin{array}{cc} L & M \\ M & N \end{array}\right].
+\]
+\end{defenv}
+
+A felületek vizsgálata során két, a fõgörbületekkel kapcsolatos mennyiség
+fontos szerepet fog játszani. Ezek azt mutatják meg, hogy a felület egy adott
+pontban mennyire görbül.
+
+\begin{defenv}
+Legyenek a felület egy adott $P$ pontjában a fõgörbületek $\mathscr{K}_1$ és
+$\mathscr{K}_2$. Ekkor
+\[ \begin{array}{ll}
+	\mathscr{K} = \mathscr{K}_1\mathscr{K}_2 &
+		\textnormal{Gauss görbület}, \\[1ex]
+	\mathscr{H} = \frac{\mathscr{K}_1+\mathscr{K}_2}2 &
+		\textnormal{Minkowski görbület}.
+\end{array}
+\]
+\end{defenv}
+
+A következõ tétel megadja a Gauss- és Minkowski-görbületek
+valamint az elsõ és második alapmennyiségek közötti kapcsolatot adja meg.
+
+\begin{theorem}
+Legyen $g(t) = r(u(t),v(t))$ az $r$ felület egy felületi görbéje. Tegyük fel,
+hogy a $t_0$ pontban a felületi görbe simulósíkja és a felület érintõsíkja nem
+esik egybe. Legyen $m$ a felület $g(t_0)$-beli normálisa, $n$ pedig a $g$
+görbe $t_0$ paraméterértékéhez tartozó fõnormálisa. Ekkor a felület e pontbeli
+görbülete:
+\[
+\mathscr{K} = \frac1{\left<m,n\right>}
+	 \frac{L\dot{u}^2 + 2M\dot{u}\dot{v} + N\dot{v}^2}
+	{E\dot{u}^2 + 2F\dot{u}\dot{v} + G\dot{v}^2} =
+\	\frac1{\left<m,n\right>} \frac{c^T\mathscr{D}c}{c^T\mathscr{G}c},
+\]
+ahol $c = [ \dot{u},\; \dot{v} ]$.
+\end{theorem}
+
+Ha a normálgörbületeket akarjuk meghatározni, akkor a felület adott pontbeli
+érintõsíkja és a megfelelõ felületi görbe simulósíkja egymásra merõleges,
+vagyis $\left<m,n\right> = 1$. Ekkor az $\frac1{\left<m,n\right>}$ együttható
+elmaradhat a képletbõl.
+
+\begin{theorem}
+A fõgörbületeket az alábbi homogén egyenlet megoldásával kaphatjuk meg:
+\[
+\left|\begin{array}{cc}
+	L - \mathscr{K}_i E & M - \mathscr{K}_i F \\
+	M - \mathscr{K}_i F & N - \mathscr{K}_i G
+\end{array}\right| = 0,
+\]
+a fõirányokat pedig a 
+\begin{gather*}
+(L - \mathscr{K}_i E)\dot{u}_i + (M - \mathscr{K}_i F)\dot{v}_i = 0 \\
+(m - \mathscr{K}_i F)\dot{u}_i + (n - \mathscr{K}_i G)\dot{v}_i = 0 
+\end{gather*}
+egyenletrendszer határozza meg ($i=1,2$).
+\end{theorem}
+
+A következõ tétel azt mondja ki, hogy a Gauss- és Minkowski-görbületek
+meghatározásához nem szükséges kiszámolnunk a konkrét fõgörbületeket, az elsõ
+és második alapmennyiségek ismerete is elegendõ hozzá.
+
+\begin{theorem}
+\begin{eqnarray*}
+\mathscr{K}&=&\frac{LN - M^2}{EG - F^2} \\
+\mathscr{H}&=&\frac{EN - 2FM + GL}{EG - F^2}
+\end{eqnarray*}
+\end{theorem}
+
+\section[Polinomiális reprezentációk]{Felületek polinomiális reprezentációja}
+
+A parametrikus görbék és felületek esetében fontosak azok a reprezentációk,
+amelyeknél a paramétertér pontjait valamilyen polinom vagy polinomok képezik le
+a tér pontjaira. Ezeknek a reprezentációknak az elõnye a könnyû kezelhetõség és
+a geomteriai tulajdonságok könnyû meghatározása. A görbék tárolásához elegendõ
+az együtthatóikat megjegyezni és a kiszámításukhoz csak a négy alapmûvelet
+szükséges. A legfontosabb polinomiális görbe reprezentációk és tulajdonságaik:
+
+\begin{enumerate}
+\item \emph{Bézier görbe:} A $c_i \in \mathbb{R}^3$ együtthatókhoz
+(kontrollpontok) tartozó Bézier görbének a következõ polinomot nevezzük:
+\[
+p(t) = \sum_{i=0}^k c_i \begin{pmatrix} k \\ i \end{pmatrix} t^i (1-t)^{k-i},
+\]
+ahol $t$ a görbe paramétere. A Bézier görbe fokszáma a kontrollpontok
+száma$+1$ lesz, ami sok kontrollpont esetén nagy lehet és így a görbe
+pontjainak meghatározása sok számítást igényel. A polinom akárhányszor
+folytonosan differenciálható. A görbe pontjai a kontrollpontok által
+meghatározott poligonon belül helyezkednek el. Minden kontrollpont hatással
+van az egész görbére, viszont az $i.$ kontrollpont a
+$t=\frac{i}{n}$. paramétertérbeli pontban fejti ki a legerõsebb hatást. Ezzel
+a reprezentációval azonban nem tudunk minden görbét megadni, például a
+gyakorlatban gyakran elõforduló gömb és kúp nem adható meg polinomiális Bézier
+reprezentációban. A görbék általánosításaként a Bézier felületeket is
+definiálhatjuk.
+
+\item \emph{B-Spline görbe:} Ha $\N{i}{n}{}$ $n.$ fokú szakaszonként
+polinomiális függvény, akkor a
+\[
+p(t) = \sum_{i=0}^k c_i \N{i}{n}{t}
+\]
+függvényt B-Spline görbének nevezzük, ahol a $c_i$-k a kontrollpontok, $t$ a
+paramétertér egy pontja.  A B-Spline görbéket több alacsony fokszámú
+polinomból rakjuk össze, így a görbe szakaszonként polinomiális. A B-Spline
+reprezentáció elõnye a Bézier-vel szemben, hogy nem kell magas fokszámú
+polinomokkal számolnunk. A polinomiális szakaszok csatlakozási pontjaiban nem
+tudunk végtelen differenciálhatóságot biztosítani, de a bázisfüggvények
+fokszámának megfelelõ megválasztásával el tudjuk érni a gyakorlat számára
+elegendõ eredményt.  Számunkra a B-Spline görbék és felületek lesznek
+megfelelõk, mivel a gyakorlat szempontjából fontos felületek reprezentálására
+alkalmasak, gyorsan kiszámíthatók, könnyen differenciálhatók. A B-Spline
+függvényekrõl a következõ szakaszban részletesen lesz szó.
+
+\item \emph{Racionális B-Spline görbék (NURBS):} A
+\[
+p(t) = \frac{\sum_{i=0}^k c_i w_i \N{i}{n}{t}}{\sum_{i=0}^k w_i \N{i}{n}{t}}
+\]
+racionális függvényt NURBS (Non Uniform Rational B-Splines) görbének nevezzük,
+ahol $t$ a paraméter, $c_i$-k a kontrollpontok és $w_i$-k súlyok. A NURBS
+görbék a B-Spline-ok általánosításai. Ez a reprezentáció már kör és kúp
+megadására is alkalmas.
+\end{enumerate}
+
+\subsection{B-Spline görbék}
+
+Régen a hajókészítés során gyakran felmerülõ probléma volt olyan görbéknek a
+meghatározása, amelyek átmennek bizonyos elõre meghatározott pontokon és
+minimalizálják a hajlításból származó energiát. Ezt a feladatot úgy oldották
+meg, hogy egy hajlékony rudat fektettek át az elõre meghatározott pontokon. A
+,,spline'' szó valójában ennek a mechanikus tervezési eszköznek a nevébõl
+származik.
+
+Ebben a szakaszban áttekintjük, hogy mik azok a B-Spline görbék és miért
+fontosak számunkra. Meg fogjuk vizsgálni a tulajdonságaikat és
+paraméterezhetõségüket. A B-Spline görbéket fogjuk felhasználni felületek
+létrehozásához.
+
+A továbbiakban legyen $S\colon [0,1] \mapsto \mathbb{R}^3$ egy parametrikus
+görbe. Azt szeretnénk elérni, hogy az $S$ görbe minél magasabb rendben
+folytonos legyen, gyorsan kiszámíthatóak legyenek a pontjai és lehetõleg kevés
+memória felhasználásával el lehessen tárolni számítógépben.
+
+Azt a megoldást választjuk, hogy több azonos -- alacsony -- fokszámú
+polinomból rakjuk össze az $S$ parametrikus görbét. Az elemi polinomok
+értelmezési tartományainak az uniója a $[0,1]$ intervallum lesz, és mindegyik
+polinom a $[0,1]$ tartománynak csak egy kis részén lesz nullától különbözõ.
+Ezzel elérjük, hogy a görbe adott paraméterpontbeli kiértékelése még nagyon
+sok polinomból álló görbék esetén is gyorsan megvalósítható lesz. Minden egyes
+pontban elég lesz csupán néhány polinom helyettesítési értékét meghatározni,
+mivel a többi polinom értéke úgyis 0 lenne. Ezekbõl a polinomokból állnak majd
+elõ a bázisfüggvények. Ezzel a módszerrel a görbe tárolása kevés memória
+felhasználásával is megvalósítható lesz, mivel csak a referenciapontok
+eltárolására lesz szükség, az egyes polinomokat nem kell külön megjegyezni.
+
+Az $S$ függvényt a következõ alakban szeretnénk elõállítani:
+\[
+t \in [0,1],\; S(t) = \sum P_i N_i(t),
+\]
+ahol az $N_i$-k szakaszonként polinomiális függvények és egy kis tartományt
+kivéve mindenhol nullával egyenlõk.
+
+\begin{defenv}
+A $t_0, t_1 \dots t_m, t_i \in \mathbb{R}$ sorozatot \emph{knot-vektornak}
+nevezzük, ha $t_0 \leq t_1 \leq \dots \leq t_m$. Ha $t_1-t_0 = t_2-t_1 = \dots
+= t_m-t_{m-1}$, akkor \emph{egyenletes knot eloszlásról} beszélünk.
+\end{defenv}
+
+\begin{defenv}
+Legyen $t_0,\dots,t_m$ egy knot-vektor, ekkor definiáljuk a 0-ad rendû B-Spline
+bázisfüggvényt a következõ módon:
+\[
+i \in [0,m-1],\; N_i^{(0)}(t) = \left\{\begin{array}{cl}
+		1, & t_i \leq t < t_{i+1} \\
+		0, & \textnormal{különben}
+\end{array}\right..
+\]
+Az $0<n$-edrendû bázisfüggvény definíciója rekurzív:
+\[
+i \in [0,m-n-1],\; N_i^{(n)}(t) = 
+	\frac{ t-t_i }{ t_{i+n}-t_i } N_i^{(n-1)}(t) +
+	\frac{ t_{i+n+1}-t }{ t_{i+n+1}-t_{i+1} } N_{i+1}^{(n-1)}(t).
+\]
+\end{defenv}
+
+A bázisfüggvények alsó indexe azt jelzi, hogy melyik knot-vektorbeli pontnál
+kezdõdik a függvény, a felsõ index pedig a bázisfüggvény fokszáma.
+
+A görbék és felületek vizsgálatánál a B-Spline-ok deriváltjainak
+meghatározását a bázisfüggvények deriváltjaira kell majd
+visszavezetnünk. Ezért hasznos a következõ tétel:
+
+\begin{theorem}
+A $N_i^{(n)}$ bázisfüggvény deriváltját a következõ formula adja:
+\[
+N_i^{'(n)}(t) = n \left(\frac{ N_i^{(n-1)}(t) }{ t_{i+n}-t_i } -
+\frac{ N_{i+1}^{(n-1)}(t) }{ t_{i+n+1}-t_{i+1} }\right).
+\]
+\end{theorem}
+
+Az $N_i^{(n)}$ bázisfüggvények a knot-vektor pontjai között végtelenszer
+differenciálhatóak, hiszen ezeken a helyeken a bázisfüggvény polinom. A
+differenciálással gond a knot-vektor pontjaiban van, itt ugyanis függ a
+bázisfüggvény rendjétõl a differenciálhatóság mértéke.
+
+\begin{theorem}
+Az $N_i^{(n)}$ bázisfüggvény a $t = t_i$ pontban $n-1$-szer folytonosan
+differenciálható, ha $t_{i-1} \ne t_i$ és $t_{i+1} \ne t_i$. Ha a $t_i$ több
+knot-vektorbeli ponttal is megegyezik, akkor a folytonos differenciálhatóság
+annyival csökken, ahány pont a $t_i$-vel egyenlõ.
+\end{theorem}
+
+%
+% ide néhány ábra a bázisfüggvényekrõl
+%
+
+\begin{defenv}
+Legyen adott $P_0$, $P_1$, $\dots$, $P_{m-n-1}$ $m-n$ db pont és a $t_0$,
+$t_1$, $\dots$, $t_m$ knot-vektor. Ekkor az
+\[
+\forall t \in [t_n,t_{m-n}]\colon S(t) = \sum_{i=0}^{m-n-1} P_i N_i^{(n)}(t)
+\]
+függvényt $n$-ed fokú \emph{B-Spline függvénynek} nevezzük. A $P_i$ pontokat
+\emph{kontrollpontoknak} nevezzük.
+\end{defenv}
+
+%
+% egy ábra egy b-spline függvényrõl
+%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Bázisfüggvények és B-Spline görbék tulajdonságai}
+
+\begin{enumerate}
+\item A B-Spline-hoz tartozó knot-vektorban lévõ pontok száma $(m)$, a
+kontrollpontok száma $(k)$, és a B-Spline rendje $(n)$ között a következõ
+összefüggés áll fenn:
+\[
+m = k+n+1.
+\]
+
+\item Az $N_i^{(n)}$ B-Spline bázis függvény a $(t_i,t_{i+n+1})$ intervallumon
+nullától különbözõ, mindenhol máshol nullával egyenlõ. Teljes indukcióval
+nagyon könnyen bizonyítható az állítás.
+
+\item
+\[
+\forall t \in \mathbb{R}\colon \N{i}{n}{t} \geq 0.
+\]
+Ez a bázisfüggvények rekurzív definíciója alapján nyilvánvaló.
+
+\item
+\[
+\forall t \in [t_n,t_{m-n}]\colon \sum_{i=0}^{m-n-1} N_i^{(n)}(t) = 1.
+\]
+
+\begin{proof}
+A bázisfüggvények fokszámára vonatkozó teljes indukcióval igazolható az
+állítás. Tegyük fel, hogy $t \in [t_j,t_{j+1})$.
+
+\begin{enumerate}
+
+\item $n = 0$ eset. Ekkor
+
+\begin{gather*}
+\sum_{i=0}^{m-n-1} \N{i}{n}{t} = N_j^{(n)}(t) = N_j^{(0)}(t) = 1.
+\end{gather*}
+
+\item Tegyük fel, hogy $k = n-1$-re fennáll az állítás. Ekkor
+
+\begin{gather*}
+\sum_{i=0}^{m-n-1} \N{i}{n}{t} = \sum_{i=j-n}^j \N{i}{n}{t} = 
+\sum_{i=j-n}^j \frac{ t-t_i }{ t_{i+n}-t_i } \N{i}{n-1}{t} + \\
+	+ \frac{ t_{i+n+1}-t }{ t_{i+n+1}-t_{i+1} } \N{i+1}{n-1}{t} = 
+\sum_{i=j-n+1}^j \frac{ t-t_i }{ t_{i+n}-t_i } \N{i}{n-1}{t} + \\
+	+ \sum_{i=j-n}^{j-1} \frac{ t_{i+n+1}-t }{ t_{i+n+1}-t_{i+1} } 
+	\N{i+1}{n-1}{t} =
+\sum_{i=j-n+1}^j \frac{ t-t_i }{ t_{i+n}-t_i } \N{i}{n-1}{t} + \\
+	+ \frac{ t_{i+n}-t }{ t_{i+n}-t_i } \N{i}{n-1}{t} = 
+\sum_{i=j-n+1}^j \N{i}{n-1}{t} = 1.
+\end{gather*}
+\end{enumerate}
+Az állítás teljesül az indukciós feltétel miatt.
+\end{proof}
+
+\item
+A B-Spline görbe pontjai a kontrollpontok konvex burkán belül helyezkednek
+el. A elõzõ két tulajdonság alapján könnyen látható.
+
+\item
+\label{bspline:összevonás}
+Ha a knot-vektor elsõ és utolsó $n+1$ pontját összevonjuk, vagyis
+$t_0 = t_1 = \dots = t_n$ és $t_{m-n} = t_{m-n+1} = \dots = t_m$, akkor 
+\[
+N_0^{(n)}(t) = \left\{\begin{array}{cl}
+	\left(\frac{ t_{n+1}-t }{ t_{n+1}-t_0 }\right)^n,
+		& t_0 \le t < t_{n+1} \\
+	0, & \textnormal{különben}
+	\end{array}\right.
+\]
+és
+\[
+N_{m-n-1}^{(n)}(t) = \left\{\begin{array}{cl}
+	\left(\frac{ t }{ t_m-t_{m-n-1} }\right)^n, & t_0 \le t < t_{n+1} \\
+	0, & \textnormal{különben}
+	\end{array}\right. .
+\]
+
+\begin{proof}
+A bázisfüggvények rekurzív definícióját felhasználva:
+\begin{gather*}
+	 N_0^{(n)}(t) = \frac{ t-t_0 }{ t_n-t_0 } N_0^{(n-1)}(t) +
+	\frac{ t_{n+1}-t }{ t_{n+1}-t_1 } N_1^{(n-1)}(t) = \\
+	= \frac{ t_{n+1}-t }{ t_{n+1}-t_1 } N_1^{(n-1)}(t) = \dots =
+	\frac{ t_{n+1}-t }{ t_{n+1}-t_1 } \dots 
+	\frac{ t_{n+1}-t }{ t_{n+1}-t_n } N_n^{(0)}(t) = \\
+	= \left(\frac{ t_{n+1}-t }{ t_{n+1}-t_0 }\right)^n N_n^{(0)}(t). 
+\end{gather*}
+A $N_{m-n-1}^{(n)}$-re vonatkozó állítás ehhez hasonlóan igazolható.
+\end{proof}
+
+\item
+Ha a knot-vektor két végén összevonunk $n+1$ db csomópontot, akkor a $P_0$ és
+$P_{m-n-1}$ kontrollpontok illeszkedni fognak a B-Spline görbére, vagyis a
+görbét ki tudjuk húzni a kontroll poligon szélére. Az elõzõ tulajdonság
+alapján:
+
+\begin{proof}
+Nézzük meg a görbe elsõ pontját, amihez a $t_n$ paraméterérték tartozik:
+\begin{gather*}
+\sum_{i=0}^{m-n-1} P_i \N{i}{n}{t_n} = P_0 \N{0}{n}{t_n} =
+P_0 \left(\frac{ t_{n+1}-t_n }{ t_{n+1}-t_0 }\right)^n = \\
+= P_0 \left(\frac{ t_{n+1}-t_n }{ t_{n+1}-t_n }\right)^n = P_0.
+\end{gather*}
+A levezetés során kihasználtuk a \ref{bspline:összevonás}. tulajdonságot.
+\end{proof}
+
+Hasonlóképpen belátható, hogy
+\[
+	\sum_{i=0}^{m-n-1} P_i \N{i}{n}{t_{n-m}} = P_{m-n-1}.
+\]
+
+\item
+A kontrollpontok hatásköre lokális, ami azt jelenti, hogy egy kontrollpont
+megváltoztatása nem fogja megváltoztatni az egész görbét, hanem annak csak egy
+jelentõsen kisebb szakaszát. Ennek az az oka, hogy a $P_i$ pont csak az $i.$
+bázisfüggvénnyel szorzódik meg a B-Spline görbében, és minden bázis függvény
+csak a paraméter tartománynak egy kisebb tartományán különbözik nullától.
+Pontosabban az \N{i}{n}{t} kifejezés csak $t \in (t_i,t_{i+n+1})$ esetén
+különbözik nullától, a többi paraméterértékhez tartozó görbeszakasz nem fog
+megváltozni, akárhogy is változtatjuk meg a $P_i$-t.
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{B-Spline felületek}
+
+A B-Spline felületeket a B-Spline görbék általánosításával kapjuk. Elõnyös
+tulajdonságaik alapján a CAGD-ben elõforduló felületeket ezzel a
+reprezentációval adják meg. 
+
+Kezdetben egy kontrollpont mátrixot adunk meg. Annyi B-Spline görbét hozunk
+létre, ahány sora van a kontrollpontokat tartalmazó mátrixnak, majd ezeknek a
+B-Spline görbéknek azonos paraméterértékekkel kiszámolt helyettesítési
+értékeit használjuk fel egy másik B-Spline görbe kontrollpontjaiként.
+
+\begin{defenv}
+Adott a $P_{ij}\, (i \in [0,n],\;j \in [0,m])$ kontrollpont mátrix és $N$,
+$M$, a két irányhoz tartozó B-Spline bázisfüggvények fokszáma. Legyenek
+$t_0^u, t_1^u, \dots, t_{n+N+1}^u$ az $u$ irányhoz, $t^v_0, t^v_1, \dots,
+t^v_{m+M+1}$ pedig a $v$ irányhoz tartozó knot-vektorok. Ekkor az
+\begin{gather*}
+\forall u \in [t_{N}^u, t_{n+1}^u], \forall v \in [t_M^v, t_{m+1}^v]\colon \\
+S(u,v) = \sum_{i=0}^n \left( \sum_{j=0}^m P_{ij} \N{j}{M}{v} \right)
+	\N{i}{N}{u} =
+\sum_{i=0}^n \sum_{j=0}^m P_{ij}\; \N{i}{N}{u} \N{j}{M}{v}
+\end{gather*}
+függvényt \emph{B-Spline felületnek} nevezzük.
+\end{defenv}
+
+Ha a továbbiakban nem mondunk mást, akkor a jelöléseket az elõzõ definíciónak
+megfelelõen kell érteni. A késõbbiekben szükségünk lesz a B-Spline felületek
+különbözõ parciális deriváltjaira:
+
+\begin{theorem}
+\begin{eqnarray*}
+\Der{S(u,v)}{u} & = &
+  \sum_{i=0}^n \sum_{j=0}^m P_{ij}\; \Der{\N{i}{N}{u}}{u} \N{j}{M}{v} \\
+\Der{S(u,v)}{v} & = &
+  \sum_{i=0}^n \sum_{j=0}^m P_{ij}\; \N{i}{N}{u} \Der{\N{j}{M}{v}}{v} \\
+\end{eqnarray*}
+\end{theorem}
+\begin{proof}
+Közvetlenül adódik a B-Spline felület definíciójából.
+\end{proof}
+
+\chapter[Felület közelítés]{Felületek közelítése diszkrét adatok alapján}
+
+A felületek illesztése során mindig valamilyen méréssel kapott diszkrét
+adatokból indulunk ki, és azokból szeretnénk olyan parametrikus felületet
+elõállítani, amelyik jól illeszkedik az adatokra. A bemenõ adatok lehetnek egy
+felület térbeli pontjai, vagy egy felület normális vektorai, esetleg offset
+felület meghatározása esetén a kiinduló felület pontjai. Az is lehet, hogy több
+felületdarabból rakjuk össze a közelítõ felületet, ilyenkor a felületek
+egymáshoz kapcsolása is nehézségeket okoz.
+
+Ebben a fejezetben azt vizsgáljuk, hogyan tudunk elõállítani parametrikus
+felületeket valamilyen ponthalmazból azzal a feltétellel, hogy az elõállított
+felület a lehetõ legjobban illeszkedjen az adott pontokra. A bemenõ pontokat
+valamilyen tárgy letapogatásával kaptuk meg. A ,,legjobb illeszkedés'' azonban
+nem egyértelmû, ezt többféleképpen is definiálhatjuk. Mi valami természetes
+megoldást szeretnénk keresni. Az sem biztos, hogy az a jó számunkra, ha a
+felület minden mérési ponton keresztül megy, hiszen mérési hibák is
+elõfordulhatnak és azokat nem akarjuk visszakapni. Nem akarjuk, hogy a felület
+nagyon ,,egyenetlen'' legyen. Valamilyen kompromisszumot kell kötni a mért
+pontok közelítése és a felület minõsége között.
+
+Tegyük fel, hogy a mérési adatok a $D_{ij} (i\in [0,k], j\in [0,l])$ mátrixban
+adottak. Ez a gyakorlatban nem biztos, hogy fennáll, sokszor csak egy részben
+struktúrált ponthalmaz áll rendelkezésre. Sok letapogató rendszer a mérés
+során egy párhuzamos vonalrendszer mentén vesz mintát. A mintavételezés száma
+egy vonal mentén nagyságrendileg nagyobb lehet a párhuzamos vonalak számánál,
+és különbözõ vonalak esetén ez a szám nem feltétlenül azonos. A párhuzamos
+vonalak mentén végighaladva, esetleg pontok elhagyásával ez a részben
+struktúrált ponthalmaz mátrixba rendezhetõ.
+
+Keressük azt az $S$ felületet, amelyik a $D_{ij}$ pontokat legjobban
+közelíti. Ehhez azonban azt is meg kell mondanunk, hogy a felület mely pontja
+felel meg egy adott $D_{ij}$ mért térbeli pontnak. Az optimális megoldás az
+lenne, ha a $D_{ij}$ pontnak a legközelebbi felületi pont felelne meg, ennek
+meghatározásához azonban ki kellene számolnunk egy pont és egy B-Spline
+felület közti távolságot, ami nem lineáris feladat. E helyett minden egyes
+mérési adathoz hozzárendelünk egy paraméterértéket ($D_{ij} \rightarrow
+(u_i,v_j)$), és az $S(u_i,v_j)$ felületi pontot feleltetjük meg a $D_{ij}$
+mért pontnak. Ez a hozzárendelés késõbb korrigálható a közelítés során, hiszen
+egyáltalán nem biztos, hogy kezdetben helyes paraméterezést választottunk. A
+feladat megtalálni azt az $S(u,v)$ felületet, amely minimalizálja
+
+\begin{itemize}
+\item
+az eltérések abszolut érték összegét:
+\[
+\sum_{i=0}^k \sum_{j=0}^l \Norma{ D_{ij} - S(u_i,v_j) }
+	\rightarrow \textrm{minimum}
+\]
+
+\item
+az eltérések abszolut értékének maximumát:
+\[
+\max_{i\in [0,k],j\in [0,l]}\{\,\Norma{ D_{ij}-S(u_i,v_j) }\,\}
+	\rightarrow \textrm{minimum}
+\]
+
+\item
+az eltérések abszolut értékének négyzetösszegét:
+\[
+\sum_{i=0}^k \sum_{j=0}^l \Norma{ D_{ij} - S(u_i,v_j) }^2
+	\rightarrow \textrm{minimum}
+\]
+\end{itemize}
+A $\Norma{.}$ jelölés az euklideszi normát jelenti.
+
+Ezek a feladatok nem veszik figyelembe a keletkezõ felület simaságát, csak a
+mért pontok közelítését.  Mi a négyeztösszegek eltérésének minimalizálását
+választjuk, ez a túl nagy eltéréseket lecsökkenti és figyelembe vesz minden
+eltérést, nem csak a legnagyobbat, azonkívül lineáris feladatra vezet.
+
+\section{Legkisebb négyzetek módszere}
+
+A mért adatokból B-Spline reprezentációban állítjuk elõ a felületet oly módon,
+hogy az a legkisebb négyzetek értelmében a legjobb közelítése legyen a bemenõ
+adatoknak.
+
+A továbbiakban feltételezzük, hogy adottak a mért adatok ($D_{ij}$, $i \in
+[0,k]$, $j \in [0,l]$), a B-Spline felület fokszáma a két irányban $(N,M)$, a
+kontrollpontok száma a két irányban $(n+1,m+1)$, a knot-vektorok a két
+irányban ($t^u_0$, $t^u_1$, $\dots$, $t^u_{n+N+1}$, és $t^v_0$, $t^v_1$,
+$\dots$, $t^v_{m+M+1}$).  A kontrollpontokat jelölje $P_{pq}$ $(p\in [0,n],\;
+q\in[0,m])$. A $D_{ij}$ pontnak az $(u_i,v_j)$ kezdeti paraméterek felelnek
+meg. Ekkor a keresett paraméterek a felület kontrollpontjai ($P$ mátrix elemei)
+lesznek. Ez lineárisan megoldható feladat lesz.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Megoldás négyzetes mátrixszal}
+\label{fejezet:approx2}
+
+Legyen
+\[
+\mathscr{I} = \sum_{i=0}^k \sum_{j=0}^l \Norma{ D_{ij} - S(u_i,v_j) }^2.
+\]
+
+Az $\mathscr{I}$ definíciójában az $S$ felület függ a $P_{pq}$
+kontrollpontoktól. A cél az $\mathscr{I} \approx 0$ egyenlet megoldása, a
+paraméterek a $P_{pq}$ kontrollpontok.  Mivel $\mathscr{I} \geq 0$, ezért
+elegendõ megkeresni azokat a kontrollpontokat, amelyekre az $\mathscr{I}$
+minimális. Ha megoldjuk a
+\[
+	\Der{\mathscr{I}}{P} = \underline 0
+\]
+egyenletet $P$-re, akkor kapunk egy optimális megoldást. Az egyenlet sorait
+kifejtve kapjuk:
+\begin{gather*}
+\forall r \in [0,n]\colon \forall s \in [0,m]\colon
+\Der{\mathscr{I}}{P_{rs}} = \sum_{i=0}^k \sum_{j=0}^l -2 [D_{ij} - S(u_i,v_j)]
+	\Der{S(u_i,v_j)}{P_{rs}} = \\
+= \sum_{i=0}^k \sum_{j=0}^l -2 [D_{ij} -
+	\sum_{p=0}^n \sum_{q=0}^m P_{pq}\,\N{p}{N}{u_i}\N{q}{M}{v_j}]\;
+	\N{r}{N}{u_i} \N{s}{M}{v_j} = \\
+= 2 \sum_{p=0}^n \sum_{q=0}^m P_{pq} \sum_{i=0}^k \sum_{j=0}^l
+   	\N{p}{N}{u_i}\N{q}{M}{v_j} \N{r}{N}{u_i}\N{s}{M}{v_j} -\\
+	- 2 \sum_{i=0}^k \sum_{j=0}^l D_{ij}\; \N{r}{N}{u_i} \N{s}{M}{v_j} = 0.
+\end{gather*}
+Az egyenletet átrendezve a következõ feladathoz jutunk:
+\begin{gather*}
+\sum_{p=0}^n \sum_{q=0}^m P_{pq} \sum_{i=0}^k \sum_{j=0}^l
+	\N{p}{N}{u_i} \N{q}{M}{v_j} \N{r}{N}{u_i} \N{s}{M}{v_j} = \\
+= \sum_{i=0}^k \sum_{j=0}^l D_{ij}\; \N{r}{N}{u_i} \N{s}{M}{v_j}.
+\end{gather*}
+
+Az egyenletek és a változók száma megegyezik a kontrollpontok számával
+($(n+1)(m+1)$), így egy négyzetes alapmátrixot kaptunk. Az egyenletet
+megoldhatjuk például \emph{Householder transzformációval}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Megoldás túlhatározott lineáris egyenletrendszerrel}
+\label{fejezet:approx1}
+
+A problémát más oldalról megközelítve különbözõ megoldási módszerhez jutunk. Az
+eredeti feladat:
+
+\begin{gather*}
+\sum_{i=0}^k \sum_{j=0}^l \Norma{ D_{ij} - S(u_i,v_j) }^2 = \\
+\sum_{i=0}^k \sum_{j=0}^l \Norma{ D_{ij} -
+  \sum_{p=0}^n \sum_{q=0}^m P_{pq}\,\N{p}{N}{u_i}\N{q}{M}{v_j} }^2 =\\
+\Norma{ \underline b - \mathscr{C}\underline x }^2
+	\rightarrow \textrm{minimum},
+\end{gather*}
+ahol
+\begin{gather}
+\label{bspline:bázisfüggvény-A}
+\mathscr{C} = \begin{bmatrix}
+	\N{0}{N}{u_0}\N{0}{M}{v_0}, & \N{0}{N}{u_0}\N{1}{M}{v_0}, & \dotsc &
+		\N{n}{N}{u_0}\N{m}{M}{v_0} \\
+	\N{0}{N}{u_0}\N{0}{M}{v_1}, & \N{0}{N}{u_0}\N{1}{M}{v_1}, & \dotsc &
+		\N{n}{N}{u_0}\N{m}{M}{v_1} \\
+	\vdots & \vdots & \ddots & \vdots \\
+%
+	\N{0}{N}{u_k}\N{0}{M}{v_l}, & \N{0}{N}{u_k}\N{1}{M}{v_l}, & \dotsc &
+		\N{n}{N}{u_k}\N{m}{M}{v_l} 
+    \end{bmatrix}, \\
+\label{bspline:mértpont-b}
+\underline b = 
+	\begin{bmatrix} D_{00} \\ D_{01} \\ \vdots \\ D_{kl} \end{bmatrix}.
+\end{gather}
+
+A feladat a $P_{pq}$ paraméterek (kontrollpontok) meghatározása a minimum
+feltételnek megfelelõen. Az $\underline x$ vektor és a kontrollpontok között a
+kapcsolat a következõ:
+\begin{gather}
+\label{bspline:kontrollpont-x}
+\underline x = 
+	\begin{bmatrix} P_{00} \\ P_{01} \\ \vdots \\ P_{nm} \end{bmatrix}.
+\end{gather}
+
+A $\mathscr{C}$ mátrixnak annyi sora van, ahány mért adat $((k+1)(l+1))$, és
+annyi oszlopa, ahány kontrollpont $((n+1)(m+1))$. Az $\underline x$ vektornak
+$((n+1)(m+1))$ sora van.
+
+Mivel $\Norma{ \underline b - \mathscr{C} \underline x } \geq 0$, ezért a
+minimum feladat a következõ egyenlettel ekvivalens:
+\[
+\Norma{ \underline b - \mathscr{C} \underline x } \approx 0,
+\]
+ahol $\mathscr{C} \in \mathbb{R}^{n \times m}$, $\underline b \in
+\mathbb{R}^n$, $\underline x \in \mathbb{R}^m$. Ha a $\mathscr{C}$ együttható
+mátrix négyzetes, vagyis ugyanannyi a kontrollpontok és mért pontok száma,
+akkor interpolációs problémával állunk szemben. Ha a $|\mathscr{C}| \neq 0$,
+akkor a lineáris egyenletrendszernek létezik egyértelmû megoldása és olyan
+B-Spline felületet kapunk, amely átmegy minden mért ponton.
+
+Ha több mért pont van, mint kontrollpont, és általában ez a helyzet, akkor
+approximációs feladatot kapunk. Ilyenkor a legtöbb esetben nem létezik olyan
+B-Spline felület a megadott paraméterekkel, amelyik minden ponton
+átmegy. Ekkor keressük a $\underline b$ vektort legjobban közelítõ
+megoldást. Ezt a $\mathscr{C}$ mátrix általános inverze adja meg. Az általános
+inverzet a \emph{Householder} transzformációval számíthatjuk ki.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Householder transzformáció}
+
+A \emph{Householder} transzformáció elõállítja bármely $A \in
+\mathbb{R}^{n\times n}$ reguláris mátrix esetén az $A = QR$ felbontást, ahol
+$Q \in \mathbb{R}^{n\times n}$ szimmetrikus ortogonális mátrix $(Q = Q^T,\;
+QQ^T=I)$, az $R$ pedig felsõ háromszög mátrix.
+
+Elõször bevezetjük a \emph{Householder transzformáció} fogalmát. Egy
+transzformációra van szükségünk, ami stabil és ki tudjuk vele nullázni egy
+mátrix elsõ oszlopában lévõ elemeket, az elsõ sortól eltekintve.
+
+\begin{defenv}
+\emph{Householder transzformációnak} nevezzük az
+\[
+	A \to Q(u)A
+\]
+leképezést, ahol $Q(u) = I - \frac{ 2uu^T }{ \Norma{u}^2 } \in 
+\mathbb{R}^{n \times n}$ és $u \in \mathbb{R}^n, u \neq 0$ tetszõleges vektor.
+\end{defenv}
+
+A $Q(u)$ mátrix szimmetrikus, mivel 
+\[
+Q(u)_{ij} = \delta_{ij} - \frac{2u_i u_j}{\Norma{u}^2}.
+\]
+
+A $Q(u)$ mátrix ortogonális, mivel
+\[
+Q(u)Q(u)^T = I - \frac{4uu^T}{\Norma{u}^2} + \frac{4uu^Tuu^T}{\Norma{u}^4} =
+I.
+\]
+
+A leképezést úgy is fel lehet fogni, mint egy tükrözést az $u$ vektorra
+merõleges síkra, hiszen egy $x$ vektor képe: $Q(u)x = x -
+2\frac{u}{\Norma{u}} \left( \frac{u^T}{\Norma{u}}x \right)$.
+
+Az $u$ vektort úgy akarjuk megválasztani, hogy egy rögzített $a$ vektor esetén
+(ami majd az $A$ mátrix elsõ oszlopa lesz) $Q(u)a = \rho e_1$ teljesüljön
+($e_1$ az elsõ elemi bázisvektor), ahol $\rho \in \mathbb{R}$ valamilyen
+rögzített szám. Legyen $u = a + \tau e_1$ alakú, ahol a $\tau \in \mathbb{R}$
+számot késõbb definiáljuk. Legyen $c = \frac{2}{\Norma{u}^2}$, a rövidebb
+jelölés miatt. Ezek alapján
+\[
+Q(u)a = a - cu(u^Ta) = a - c(a + \tau e_1)(u^Ta) = a(1 - c(u^Ta)) -
+	\tau c e_1(u^Ta).
+\]
+Ha $1 = c(u^Ta)$ teljesülne, akkor fennállna a $Q(u)a = -\tau e_1$ egyenlõség,
+vagyis amit akartunk. Tekintsük a következõ egyenleteket:
+\begin{gather*}
+\left.
+\begin{matrix}
+	1 = c(u^Ta) = c(\Norma{a}^2 + \tau e_1^T a) \\
+	\Norma{u}^2 = (a + \tau e_1)^2 = \Norma{a}^2 + 2\tau e_1^T a +
+		\tau^2\Norma{e_1}^2 
+\end{matrix} \right\} \Rightarrow
+\Norma{a}^2 = \tau^2 \Norma{e_1}^2.
+\end{gather*}
+
+Ehhez az szükséges, hogy $\tau = \pm \frac{\Norma{a}}{\Norma{e_1}}$ igaz
+legyen. A $\tau$-t bármelyiknek választhatjuk, de a stabilitás miatt célszerû
+az $\Norma{u}$-t nagyobbnak választani, ezért legyen:
+\[
+\tau = \left\{\begin{array}{rl}
+	\Norma{a}, & e_1^T a = a_1 \geq 0 \\
+	-\Norma{a}, & e_1^T a = a_1 < 0
+	\end{array}\right.,
+\]
+%
+mivel $\Norma{e_1} = 1$. Ezzel a módszerrel tetszõleges $A$ mátrix esetén meg
+tudunk határozni egy $u = a + \tau e_1$ vektort, amire teljesül:
+\[
+Q(u)A = \begin{bmatrix}
+	-\tau	& * & \dots & *	\\
+	0	&  & &	\\
+	\vdots	&  & &	\\
+	0	&  & & 	\\
+	\end{bmatrix}.
+\]
+
+Hívjuk az elsõ lépésben kapott mátrixot $Q^{(1)}$-nek. Végezzük el a
+kinullázást arra a mátrixra, amit úgy kapunk, hogy a $Q^{(1)}A$ mátrix elsõ
+sorát és elsõ oszlopát elhagyjuk. Ekkor kapunk egy $Q^{(2)}$ mátrixot. Ezt az
+eljárást ismételjük $n-1$-szer, majd képezzük a kapott szimmetrikus
+ortogonális mátrixokból a következõ módosított mátrixokat:
+
+\begin{gather*}
+\Tilde{Q}^{(1)} = Q^{(1)} \in \mathbb{R}^{n \times n}, \:
+\Tilde{Q}^{(2)} = \begin{bmatrix}
+			1      & 0 & \dots   & 0 \\
+			0      &   &         &   \\
+			\vdots &   & Q^{(2)} &   \\
+			0      &   &	     &   
+		\end{bmatrix} \in \mathbb{R}^{n \times n}, \dots, \\
+\Tilde{Q}^{(n-1)} = \begin{bmatrix}
+			1      & 0       & \dots  \\
+			0      & \ddots  &   \\
+			\vdots &         &  Q^{(n-1)}
+		\end{bmatrix} \in \mathbb{R}^{n \times n}.
+\end{gather*}
+
+Ezzel kaptunk egy $\Tilde{Q} = \Tilde{Q}^{(n-1)}\dots\Tilde{Q}^{(1)}$
+ortogonális mátrixot, amire $QA$ felsõ háromszög mátrix. Legyen $R = QA$,
+ekkor $Q^T R = A$ az A mátrix egy $QR$ felbontása. Ezt az eljárást $A \in
+\mathbb{R}^{m \times n}$ mátrixra is lehet alkalmazni, ahol $m > n$. Ekkor
+$n$~db $\Tilde{Q}_i$ mátrixot kapunk, az $R$ pedig a következõ alakú lesz:
+\[
+	R = \begin{bmatrix}
+		r_{11} & r_{12} & \dots  \\
+	        \vdots & \ddots &   *    \\
+		 0     & \dots  &  r_{nn}\\
+		       & 	&	 \\
+		       &   0    &  	 \\
+		       &        &
+	\end{bmatrix}.
+\]
+
+Legyen most $A \in \mathbb{R}^{m \times n}$, $b \in \mathbb{R}^m$,  $x \in
+\mathbb{R}^n$. Keressük azt az $\tilde{x}$ vektort, melyre:
+\[
+\tilde{x} \in \mathbb{R}^n,\; \Norma{ A\tilde{x} - b } = 
+	\min_{ x\in\mathbb{R}^n } \{\; \Norma{Ax - b} \;\}.
+\]
+
+Vegyük hozzá az $A$ vektorhoz utolsó oszlopként a $b$ vektort, az eredményt
+jelölje $\Tilde{A}$. Végezzük el az $\Tilde{A}$ mátrix $QR$ felbontását
+($\Tilde{A} = QR$).  Ez tetszõleges mátrix esetén elvégezhetõ. A kapott $R$
+felsõ háromszög mátrix legyen
+\[
+R = \begin{bmatrix}
+	R' & r \\
+	0  & c \\
+	0  & 0 
+    \end{bmatrix} \in \mathbb{R}^{m\times (n+1)}, 
+r \in \mathbb{R}^n, c \in \mathbb{R}
+\]
+alakú. Mivel euklideszi normát használunk, ezért 
+$\forall y\in\mathbb{R}^m\colon \Norma{Qy}^2 = (Qy)^T Qy = y^TQ^TQy = y^Ty = 
+\Norma{y}^2$. Ezek alapján:
+\[
+\Norma{Ax-b}^2 = \Norma{Q^T (Ax-b)}^2 = \Norma{ Q^T \Tilde{A} 
+\begin{bmatrix} x \\ -1 \end{bmatrix} }^2 = \Norma{R'x - r}^2 + c^2 \geq c^2.
+\]
+
+Innen következik, hogy az ,,$\Norma{Ax-b} \rightarrow \textrm{minimum}$''
+probléma megoldását visszavezettük az ,,$\Norma{R'x - r} \rightarrow
+\textrm{minimum}$'' probléma megoldására, ami már $R$ felsõ háromszög volta
+miatt triviális. Az sem okoz problémát, ha az $A$ mátrix nem volt teljes
+rangú, ilyenkor az $R$ mátrix fõátlójában nullák is elõ fognak fordulni.
+
+A \emph{Householder transzformáció} használható mért adatokat approximáló
+B-Spline felületek elõállítására, a kapcsolatot az $A$ mátrix és a
+bázisfüggvények, a $b$ vektor és a mérési adatok, az $x$ vektor és a
+kontrollpontok között a \ref{bspline:bázisfüggvény-A},
+\ref{bspline:mértpont-b} és \ref{bspline:kontrollpont-x} egyenletek írják le.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Funkcionálok}
+\label{fejezet:funkcional}
+
+Gyakorlati feladatok megoldása során sokszor felmerül az a természetes igény,
+hogy a mért pontokra illesztett felület ne csak a közelítés feltételének
+feleljen meg, hanem a lehetõ legsimább is legyen. Ezt részben az esztétikai
+elvárásaink, részben a felületek gyakorlati szerepe követeli meg. Gondoljunk
+például egy autó karosszériaelemére, amelynek fényvisszaverõdési
+tulajdonságait nagymértékben befolyásolja a felület simasága. A repülõgépek
+szárnyának kialakításakor pedig az aerodinamikai jellemzõk optimalizálása
+érdekében fontos, hogy a felület sima legyen. Ebben a fejezetben olyan
+módszerekrõl lesz szó, amelyekkel növelhetjük a felületek simaságát úgy, hogy
+közben a mért adatoktól sem távolodunk el túlságosan.
+
+A feladat tehát olyan B-Spline felületek elõállítása, amelyekre minimális a
+mért pontoktól vett távolságnégyzetek összege, valamint egy a simaságot leíró
+funkcionál is. Ez ellentmondást hordoz magában, mert minél jobban megközelítjük
+a mért pontokat, annál többet veszíthetünk a simaságból. Fordítva is
+igaz. Minél simább az elõállított felület, annál jobban eltávolodhatunk a mért
+pontoktól.  Az ellentmondás feloldása érdekében valamilyen súlyokat kell
+bevezetnünk, ami azt határozza meg, hogy mennyire fontos számunkra a felület
+simasága és a pontoktól mért távolság. Ezután nem külön-külön minimalizáljuk a
+felületek ezen két alapvetõ jellemzõjét leíró funkcionált, hanem a súllyal
+korrigált összegüket egyszerre.
+
+Legyen továbbra is
+\[
+\mathscr{I}(P) = \sum_{i=0}^k \sum_{j=0}^l \Norma{ D_{ij} - S(u_i,v_j) }^2,
+\]
+ahol $P$ a kontrollpontokat tartalmazó mátrix, ami az elõállított $S$
+felületet befolyásolja. Jelölje $\mathscr{Q}(P)$ a simaságot leíró
+funkcionált. Ezt többféleképpen is megadhatjuk. Például minimalizálhatjuk a
+görbületet, a görbületi energiát, a felületi feszültséget. Ezután a
+minimalizálandó függvény a következõ lesz:
+\[
+\mathscr{F}(P)=(1-\mu)\mathscr{I}(P)+\mu\mathscr{Q}(P),
+\]
+ahol $\mu \in [0,1]$ a simaság fontosságát meghatározó konstans. A minimum
+meghatározásához deriválnunk kell az $\mathscr{F}(P)$ függvényt minden
+kontrollpont szerint. A megoldandó egyenlet:
+\[
+\Der{\mathscr{F}(P)}{P} = (1-\mu)\Der{\mathscr{I}(P)}{P}+
+\mu\Der{\mathscr{Q}(P)}{P} = 0.
+\]
+
+A $\Der{\mathscr{I}(P)}{P}$ értékét kontrollpontonkénti deriválással, a
+\ref{fejezet:approx1}. szakaszban leírtak alapján a következõképpen
+számolhatjuk ki:
+\begin{gather*}
+\forall r \in [0,n]\colon \forall s \in [0,m]\colon \\
+\Der{\mathscr{I}(P)}{P_{rs}}= 2 \sum_{p=0}^n \sum_{q=0}^m P_{pq} \sum_{i=0}^k 
+\sum_{j=0}^l \N{p}{N}{u_i}\N{q}{M}{v_j} \N{r}{N}{u_i} \N{s}{M}{v_j} -\\ 
+- 2 \sum_{i=0}^k \sum_{j=0}^l D_{ij}\;  \N{r}{N}{u_i} \N{s}{M}{v_j}.
+\end{gather*}
+
+A következö szakaszokban megvizsgálunk néhány lineárisan minimalizálható
+funkcionált, amelyek alkalmasak a felület minõségének jellemzésére.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Felszín minimalizálása}
+
+Ebben a szakaszban úgy próbáljuk simítani a felületet, hogy a felület
+pontjaihoz tartozó parciális derivált vektorok hosszát minimalizáljuk. Mivel a
+felszín is az elsõrendû parciális deriváltaktól függ, ez azt eredményezi, hogy
+a felszín is kisebb lesz, vagyis a felület simul.
+
+Legyen  
+\begin{gather*}
+\mathscr{Q}(P) = \int_{t^u_N}^{t^u_{n+1}} \int_{t^v_M}^{t^v_{m+1}} 
+(\nabla S(u, v))^2\; dudv = \\
+= \int_{t^u_N}^{t^u_{n+1}} \int_{t^v_M}^{t^v_{m+1}}
+	( S_u(u, v)^2 + S_v(u, v)^2 )\; dudv.
+\end{gather*}
+ 
+A $\mathscr{Q}(P)$ kontrollpontok szerinti deriváltjának kiszámításához
+szükségünk lesz az $S$ felület parciális deriváltjaira és azok kontrollpontok
+szerinti deriváltjaira is:
+\begin{eqnarray*}
+S_u(u, v) &=& \sum_{p=0}^n \sum_{q=0}^m P_{pq} \Der{\N{p}{N}{u}}{u} \N{q}{M}{v}
+\\ 
+S_v(u, v) &=& \sum_{p=0}^n \sum_{q=0}^m P_{pq} \N{p}{N}{u} \Der{\N{q}{M}{v}}{v}
+\\ 
+\Der{S_u(u, v)}{P_{rs}} &=& \Der{\N{r}{N}{u}}{u} \N{s}{M}{v} \\ 
+\Der{S_v(u, v)}{P_{rs}} &=& \N{r}{N}{u} \Der{\N{s}{M}{v}}{v}.
+\end{eqnarray*}
+Ezek alapján
+\begin{gather*}
+\Der{\mathscr{Q}(P)}{P_{rs}} = 2 \int \int S_u(u, v) \Der{S_u(u, v)}{P_{rs}} +
+S_v(u, v) \Der{S_v(u, v)}{P_{rs}}\; dudv = \\
+= 2 \int \int \sum_{p=0}^n \sum_{q=0}^m \bigg( 
+  P_{pq} \Der{\N{p}{N}{u}}{u} \N{q}{M}{v} \Der{\N{r}{N}{u}}{u} \N{s}{M}{v} + \\
++ P_{pq} \N{p}{N}{u} \Der{\N{q}{M}{v}}{v} \N{r}{N}{u} \Der{\N{s}{M}{v}}{v}
+  \bigg)\; dudv = \\
+= 2 \sum_{p=0}^n \sum_{q=0}^m P_{pq} \bigg(
+  \int \Der{\N{p}{N}{u}}{u} \Der{\N{r}{N}{u}}{u}\; du \int \N{q}{M}{v}
+  \N{s}{M}{v}\; dv + \\ 
+  + \int \N{p}{N}{u} \N{r}{N}{u}\; du \int \Der{\N{q}{M}{v}}{v}
+  \Der{\N{s}{M}{v}}{v}\; dv \bigg).
+\end{gather*}
+
+Ezzel megkaptuk a simításhoz szükséges funkcionál kontrollpontonkénti
+deriváltját. Most már fel tudjuk írni az eredeti feladat megoldását adó
+egyenleteket: 
+\begin{gather*}
+\forall r \in [0,n]\colon \forall s \in [0,m]\colon 
+\Der{\mathscr{F}(P)}{P_{rs}} = \\
+= 2 \sum_{p=0}^n \sum_{q=0}^m P_{pq} \Bigg(
+  (1-\mu) \sum_{i=0}^k \sum_{j=0}^l \N{p}{N}{u_i}\N{q}{M}{v_j} 
+  \N{r}{N}{u_i} \N{s}{M}{v_j} + \\ 
++ \mu \bigg( 
+  \int \Der{\N{p}{N}{u}}{u} \Der{\N{r}{N}{u}}{u}\; du \int \N{q}{M}{v}
+  \N{s}{M}{v}\; dv + \\
+  + \int \N{p}{N}{u} \N{r}{N}{u}\; du \int \Der{\N{q}{M}{v}}{v}
+  \Der{\N{s}{M}{v}}{v}\; dv \bigg) \Bigg)  - \\
+- (1 - \mu) 2 \sum_{i=0}^k \sum_{j=0}^l D_{ij}\;  \N{r}{N}{u_i} 
+  \N{s}{M}{v_j} = 0.
+\end{gather*}
+
+Ez $(n+1)(m+1)$ egyenletet jelent, amelyekben az ismeretlenek (a $P$ mátrix
+elemei) száma szintén $(n+1)(m+1)$. Az egyenletrendszer megoldható
+\emph{Householder transzformációval}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Görbületi energia minimalizálása}
+
+A görbületi energia minimalizálásával is simább felületet kaphatunk.
+Legyen a $\mathscr{Q}(P)$ funkcionál a következõ:
+
+\begin{gather*}
+\mathscr{Q}(P) = \int_{t^u_N}^{t^u_{n+1}} \int_{t^v_M}^{t^v_{m+1}}
+	(S_{uu}(u, v) + S_{vv}(u, v))^2 -\\
+	- 2(1-\nu)(S_{uu}(u,v) S_{vv}(u,v) - S_{uv}(u,v)^2)\; dudv,
+\end{gather*}
+ahol a felület $u$ illetve $v$ szerinti deriváltjait így írhatjuk fel:
+\begin{eqnarray*}
+S_{uu}(u, v) &=& \sum_{p=0}^n \sum_{q=0}^m P_{pq}\, \Der{^2\N{p}{}{u}}{u^2} 
+	\N{q}{}{v} \\
+S_{vv}(u, v) &=& \sum_{p=0}^n \sum_{q=0}^m P_{pq}\, \N{p}{}{u} 
+	\Der{^2\N{q}{}{v}}{v^2} \\
+S_{uv}(u, v) &=& \sum_{p=0}^n \sum_{q=0}^m P_{pq}\, \Der{\N{p}{}{u}}{u}
+	\Der{\N{q}{}{v}}{v}. 
+\end{eqnarray*}
+Mi csak a $\nu=1$ esettel foglalkozunk. Most írjuk fel a funkcionál
+kontrollpontonkénti deriváltját, amire a minimalizálásnál lesz szükség:
+\begin{gather*}
+\Der{\mathscr{Q}(P)}{P_{rs}} = \\
+= 2 \int \int (S_{uu}(u, v) + S_{vv}(u,v))
+  \left( \Der{S_{uu}(u, v)}{P_{rs}} + \Der{S_{vv}(u, v)}{P_{rs}} \right) \; 
+  dudv = \\
+= 2 \int \int \left( \sum_{p=0}^n \sum_{q=0}^m P_{pq} \Der{^2\N{p}{}{u}}{u^2} 
+	\N{q}{}{v} + \sum_{p=0}^n \sum_{q=0}^m P_{pq} \N{p}{}{u} 
+	\Der{^2\N{q}{}{v}}{v^2} \right) \\
+  \left( \Der{^2\N{r}{}{u}}{u^2} \N{s}{}{v} + \N{r}{}{u} 
+         \Der{^2\N{s}{}{v}}{v^2} \right)\; dudv = \\
+= 2 \sum_{p=0}^n \sum_{q=0}^m P_{pq} \bigg( 
+	\int \Der{^2\N{p}{}{u}}{u^2} \Der{^2\N{r}{}{u}}{u^2}\; du
+	\int \N{q}{}{v} \N{s}{}{v}\; dv + \\
++ \int \Der{^2\N{p}{}{u}}{u^2} \N{r}{}{u}\; du
+	\int \N{q}{}{v} \Der{^2\N{s}{}{v}}{v^2}\; dv + \\
++ \int \N{p}{}{u} \Der{^2\N{r}{}{u}}{u^2}\; du
+	\int \Der{^2\N{q}{}{v}}{v^2} \N{s}{}{v}\; dv + \\
++ \int \N{p}{}{u} \N{r}{}{u}\; du
+	\int \Der{^2\N{q}{}{v}}{v^2} \Der{^2\N{s}{}{v}}{v^2}\; dv \bigg). 
+\end{gather*}
+
+Ezután felírhatjuk az eredeti feladatot megoldó egyenleteket:
+\begin{gather*}
+\forall r \in [0,n]\colon \forall s \in [0,m]\colon 
+\Der{\mathscr{F}(P)}{P_{rs}} = \\
+= 2 \sum_{p=0}^n \sum_{q=0}^m P_{pq} \Bigg(
+  (1-\mu) \sum_{i=0}^k \sum_{j=0}^l \N{p}{N}{u_i}\N{q}{M}{v_j} 
+  \N{r}{N}{u_i} \N{s}{M}{v_j} + \\ 
++ \mu \bigg( \int \Der{^2\N{p}{}{u}}{u^2} \Der{^2\N{r}{}{u}}{u^2}\; du
+	\int \N{q}{}{v} \N{s}{}{v}\; dv + \\
++ \int \Der{^2\N{p}{}{u}}{u^2} \N{r}{}{u}\; du
+	\int \N{q}{}{v} \Der{^2\N{s}{}{v}}{v^2}\; dv + \\
++ \int \N{p}{}{u} \Der{^2\N{r}{}{u}}{u^2}\; du
+	\int \Der{^2\N{q}{}{v}}{v^2} \N{s}{}{v}\; dv + \\
++ \int \N{p}{}{u} \N{r}{}{u}\; du
+	\int \Der{^2\N{q}{}{v}}{v^2} \Der{^2\N{s}{}{v}}{v^2}\; dv \bigg)
+	 \Bigg) - \\
+- (1 - \mu) 2 \sum_{i=0}^k \sum_{j=0}^l D_{ij}\; 
+	\N{r}{N}{u_i} \N{s}{M}{v_j} = 0.
+\end{gather*}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Kontrollpoligon minimalizálása}
+
+Most abból indulunk ki, hogy a felületen ott keletkeznek kiemelkedések vagy
+süllyedések, ahol egy olyan kontrollpont befolyásolja a felületet, amelyik a
+szomszédaitól távolabb helyezkedik el. Ezért arra fogunk törekedni, hogy az
+ilyen kiugró kontrollpontokat közelítsük a szomszédaihoz, vagyis a köztük lévõ
+távolságnégyzeteket minimalizáljuk.
+
+Válasszuk a következõ funkcionált a simításhoz:
+\begin{gather*}
+\mathscr{Q}(P) = \sum_{p=0}^n \sum_{q=0}^m \chi(p-1, q)(P_{p-1q} - P_{pq})^2 +
+ \chi(p+1, q)(P_{p+1q} - P_{pq})^2 +\\ 
++\chi(p, q-1)(P_{pq-1} - P_{pq})^2 +
+ \chi(p, q+1)(P_{pq+1} - P_{pq})^2,
+\end{gather*} 
+ahol
+\begin{gather*}
+\chi(i, j) = \left\lbrace \begin{array}{cl}
+			1, & \textrm{ha $i \in [0, n]$ és $j \in [0,m]$} \\
+			0, & \textrm{különben}
+		    \end{array} \right..
+\end{gather*}
+A $\mathscr{Q}(P)$ funkcionál $P_{rs}$ kontrollpont szerinti deriváltja:
+\begin{gather*}
+\Der{\mathscr{Q}(P)}{P_{rs}} = \chi(r-1, s)4(P_{rs} - P_{r-1s}) +
+ \chi(r+1, s)4(P_{rs} - P_{r+1s}) +\\ 
++\chi(r, s-1)4(P_{rs} - P_{rs-1}) +
+ \chi(r, s+1)4(P_{rs} - P_{rs+1}).
+\end{gather*}
+%
+A megoldandó egyenletek tehát:
+\begin{gather*}
+\forall r \in [0,n]\colon \forall s \in [0,m]\colon 
+\Der{\mathscr{F}(P)}{P_{rs}} = \\
+= (1 - \mu) 2 \sum_{p=0}^n \sum_{q=0}^m P_{pq} \sum_{i=0}^k 
+  \sum_{j=0}^l \N{p}{N}{u_i}\N{q}{M}{v_j} \N{r}{N}{u_i} \N{s}{M}{v_j} +\\
++ \mu \big(\chi(r-1, s)4(P_{rs} - P_{r-1s}) +
+  \chi(r+1, s)4(P_{rs} - P_{r+1s}) + \\ 
++ \chi(r, s-1)4(P_{rs} - P_{rs-1}) +
+  \chi(r, s+1)4(P_{rs} - P_{rs+1})\big) - \\
+- (1 - \mu) 2 \sum_{i=0}^k \sum_{j=0}^l D_{ij}\;  
+  \N{r}{N}{u_i} \N{s}{M}{v_j} = 0.
+\end{gather*}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Paraméter korrekció}
+
+Az approximáció alapelve, hogy olyan felületet találjunk a mért pontjainkhoz,
+amely a lehetõ legjobban közelíti azokat. A közelítésen a legkisebb négyzetes
+eltérést értjük. Az elsõ lépésnél azonban még nincs felületünk amihez
+viszonyíthatnánk, azt sem tudjuk eldönteni, hogy a felület mely
+paraméterértékeinél vett pontja van legközelebb egy adott mért ponthoz. Az
+approximációhoz viszont mindenképpen felületi pontokat és mért pontokat kell
+egymáshoz rendelnünk. Ezért a közelítés elsõ lépésekor valamilyen kezdeti
+paraméterezést határozunk meg.
+
+Mi abból indulunk ki, hogy a mért pontjainkat egy mátrixban tároljuk, és a
+paraméter eloszlás egyenletes.  A kezdeti paraméterezés meghatározására más
+módszereket is használhatunk, például Coons felületre vetíthetjük a mért
+pontokat és az így kapott felületi ponthoz tartozó paraméterértékeket
+rendeljük a mért pontokhoz.
+
+Approximáció végzésekor mindenképpen ajánlott a kezdetben megadott
+paraméterértékeket korrigálni. Nem szabad ugyanis megfeledkeznünk arról, hogy
+a minimalizáláskor használt hiba vektorok ($E_{ij}=D_{ij}-S(u_i, v_j)$) nem
+merõlegesek a közelítõ felületre ($S(u, v)$). 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Korrekció vetítéssel}
+\label{fejezet:parkor}
+
+A korrigáláshoz elõször vetítsük le a $D_{ij}$ pontot az $S(u, v)$ közelítõ
+felület $S(u_i, v_j)$ pontjához tartozó érintõsíkra. Legyen ez a $D'_{ij}$.
+
+%% ide jöhet egy jó kis ábra a paraméter korrekcióról
+\begin{figure}[ht]
+\centering
+\includegraphics{parkor.ps}
+\caption{Paraméter korrekció vázlatos rajza.}
+\end{figure}
+
+Az érintõsík az $S_u(u_i, v_j)$ és $S_v(u_i, v_j)$ parciális deriváltak
+segítségével határozható meg. Legyen az $\overline{E}_{ij}$ az $S(u_i,
+v_j)$-bõl a $D'_{ij}$ pontba mutató vektor. Ez a vektor nem más, mint az
+eredeti $E_{ij}$ hibavetornak az érintõsíkon vett vetülete. Most már tudjuk,
+hogy a felületen milyen irányban és milyen távolságra van az a pont, ami a
+mért pontunkhoz közelebb esik, mint a ponthoz tartozó paraméterértékek által
+meghatározott felületi pont. Azt szeretnénk megtudni, hogy ehhez a közelebbi
+ponthoz milyen paraméterértékek tartoznak. 
+
+Legyenek $u_i^*$ és $v_i^*$ a módosított paraméterértékek. $L(u_i)$ valamint
+$L(v_j)$ az $S(u_i, v_j)$ ponthoz tartozó $u$ illetvet $v$ irányú
+paramétervonalak hossza. $\omega_u$ és $\omega_v$ az $u$ valamint a $v$
+paraméter intervallumok hossza. $\Delta c$ és $\Delta d$ az $E_{ij}$ vektor
+$S_u(u_i,v_j)$ illetve $S_v(u_i,v_j)$ parciális derivált vektorokra vett
+vetületének a hosszát jelentik. Ekkor a következõ aránypárokat írhatjuk fel:
+
+\begin{gather*}
+\frac{\Delta c}{L(u_i)} = \frac{u_i^*-u_i}{\omega_u}, \hspace{0.5in}
+\frac{\Delta d}{L(v_j)} = \frac{v_j^*-v_j}{\omega_v} \\
+\Downarrow \\
+u_i^* = u_i + \frac{\Delta c}{L(u_i)} \omega_u, \hspace{0.5in}
+v_j^* = v_j + \frac{\Delta d}{L(v_j)} \omega_v,
+\end{gather*}
+ahol
+\begin{gather*}
+\Delta c = \left<E_{ij}, \frac{S_u(u_i, v_j)}{\Norma{S_u(u_i, v_j)}}\right>,
+\\[12pt]
+\Delta d = \left<E_{ij}, \frac{S_v(u_i, v_j)}{\Norma{S_v(u_i, v_j)}}\right>.
+\end{gather*}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Korrekció elsõ rendû Taylor-polinommal}
+
+Vegyük a következõ függvényt: $F(u, v) = D_{ij} - S(u, v)$. Ez a közelítõ
+felület pontjait a mért ponttal összekötõ vektorokat adja meg. Keressük azokat
+az $u$, $v$ paramétereket, amelyek mellett az $F(u,v)$ vektor a
+legrövidebb. Tehát a feladat:
+\[
+\Norma{F(u, v)^2} \rightarrow minimum.
+\]
+
+Az $F$ függvényt közelíteni tudjuk, ha a felületet az $(u_i, v_j)$ pont körül
+Taylor-sorba fejtjük. Így a következõ képletet kapjuk:
+\begin{gather*}
+F(u,v) \approx \tilde{F}(u, v) = D_{ij} - S(u_i, v_j) - \\
+	- S_u(u_i, v_j)(u - u_i) - S_v(u_i, v_j)(v - v_j).
+\end{gather*}
+A hiba vektor akkor lesz a legrövidebb, ha:
+\begin{gather*}
+\Der{\tilde{F}(u, v)^2}{u} = -2 \tilde{F}(u, v)S_u(u_i, v_j) = 0 \\[12pt]
+\Der{\tilde{F}(u, v)^2}{v} = -2 \tilde{F}(u, v)S_v(u_i, v_j) = 0.
+\end{gather*}
+%
+Kifejtve:
+
+\begin{gather*}
+\tilde{F}(u, v)S_u(u_i, v_j) = \\
+=\left(D_{ij} - S(u_i, v_j) - S_u(u_i, v_j)\Delta u - S_v(u_i, v_j)\Delta v 
+ \right)S_u(u_i, v_j) = \\
+= E_{ij}S_u(u_i, v_j) - S_u(u_i, v_j)^2\Delta u - S_v(u_i, v_j) S_u(u_i,
+v_j)\Delta v, \\[12pt] 
+\tilde{F}(u, v)S_v(u_i, v_j) = \\ 
+=\left(D_{ij} - S(u_i, v_j) - S_u(u_i, v_j)\Delta u - S_v(u_i, v_j)\Delta v 
+ \right)S_v(u_i, v_j) = \\
+= E_{ij}S_v(u_i, v_j) - S_u(u_i, v_j) S_v(u_i, v_j)\Delta u - S_v(u_i,
+v_j)^2\Delta v,
+\end{gather*}
+%
+ahol 
+\begin{eqnarray*}
+\Delta u &=& u - u_i \\
+\Delta v &=& v - v_j \\
+E_{ij} &=& D_{ij} - S(u_i, v_j).
+\end{eqnarray*}
+
+Azokat a $\Delta u$ és $\Delta v$ értékeket kell megkeresni, amelyek
+kielégítik a fenti egyenletrendszert. Legyen 
+\begin{eqnarray*}
+a &=& S_u(u_i, v_j)^2 \\
+b &=& S_v(u_i, v_j) S_u(u_i, v_j) \\
+c &=& S_u(u_i, v_j) S_v(u_i, v_j) \\
+d &=& S_v(u_i, v_j)^2 \\
+e &=& E_{ij}S_u(u_i, v_j) \\
+f &=& E_{ij}S_v(u_i, v_j) \\
+x &=& \Delta u \\
+y &=& \Delta v.
+\end{eqnarray*} 
+Ebben a jelölésrendszerben felírva az elõzõekben kapott egyenleteket és
+megoldva $x$, $y$-ra, az alábbi eredményre jutunk:
+\begin{gather*}
+ax + by = e, \hspace{0.5in}
+cx + dy = f \\
+\Downarrow \\
+x = \frac{de - fb}{ad - bc}, \hspace{0.5in}
+y = \frac{af - ec}{ad - bc}.
+\end{gather*}
+Visszahelyettesítve az eredeti egyenlet megoldását kapjuk $\Delta u$, $\Delta
+v$-re:
+\begin{gather*}
+\Delta u = \frac{ S_v(u_i, v_j)^2 (E_{ij} S_u(u_i, v_j)) - 
+	(E_{ij} S_v(u_i, v_j)) (S_v(u_i, v_j) S_u(u_i, v_j)) }
+	{ S_u(u_i, v_j)^2 S_v(u_i, v_j)^2 - 
+	(S_v(u_i, v_j) S_u(u_i, v_j))^2 } \\[12pt]
+\Delta v = \frac{ S_u(u_i, v_j)^2 (E_{ij} S_v(u_i, v_j)) -
+	 (E_{ij} S_u(u_i, v_j)) (S_u(u_i, v_j) S_v(u_i, v_j)) }
+	{ S_u(u_i, v_j)^2 S_v(u_i, v_j)^2 - 
+	(S_v(u_i, v_j) S_u(u_i, v_j))^2 }.
+\end{gather*}
+
+Ezek alapján az új paraméterértékek már nagyon egyszerûen kiszámíthatóak:
+\begin{eqnarray*}
+u_i^* &=& u_i + \Delta u \\
+v_j^* &=& v_j + \Delta v.
+\end{eqnarray*}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Korrekció Newton módszerrel}
+
+Az elõzõ módszernél a közelítõ felület Taylor-sorba fejtésével kerestük meg
+azokat a paraméterértékeket, amelyek a közelítõ felület azon pontját
+határozták meg, amelyik a legközelebb helyezkedik el a mért ponthoz. Most egy
+másik megközelítést vizsgálunk meg. Legyen a minimalizálandó hibavektor 
+az $F(u, v) = D_{ij} - S(u, v)$. Ez a vektor ott lesz a legrövidebb, ahol az 
+$F^2$ függvény $u$ illetve $v$ szerinti deriváltja $0$-val egyenlõ:
+\[
+\Der{F^2(u, v)}{u} = 0, \hspace{0.5in}
+\Der{F^2(u, v)}{v} = 0.
+\]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ide kéne egy kis ábra a Newton módszerrõl
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}
+\centering
+\includegraphics{newton.ps}
+\caption{A Newton-iteráció egy lépése.}
+\end{figure}
+
+A zérushely megtalálására használjuk a Newton módszert. A módszer egy lépése
+során a következõ egyenletbõl kiindulva határozza meg egy adott $x_0$ értéknél
+a zérushelyhez közelebb esõ $x_1$ pontot:
+\begin{gather*}
+f'(x_0) = \frac{f(x_0)}{x_0 - x_1} \\
+\Downarrow \\
+x_1 = x_0 - \frac{f(x_0)}{f'(x_0)}.
+\end{gather*}
+
+A mi esetünkben $f$ függvénynek az $F^2$ függvény $u$ illetve $v$ szerinti
+deriváltját választjuk, hiszen ezeknek a zérushelyeire vagyunk
+kiváncsiak. Mivel a Newton módszer alkalmazása során is deriválnunk kell az
+$f$ függvényt, esetünkben az $F^2$ második deriváltjaira is szükségünk
+lesz. Jelölje $\Delta u$ az $u$ irányú, $\Delta v$ pedig a $v$ irányú, Newton
+módszer által meghatározott elmozdulást. Tehát:
+\begin{gather*}
+\Der{F^2(u, v)}{u} = -2(D_{ij} - S(u, v)) S_u(u, v) \\
+\Der{F^2(u, v)}{v} = -2(D_{ij} - S(u, v)) S_v(u, v) \\[12pt]
+\Der{^2F^2(u, v)}{u^2} = 2 S_u(u, v) S_u(u, v) - 
+	2(D_{ij} - S(u, v)) S_{uu}(u, v) \\
+\Der{^2F^2(u, v)}{v^2} = 2 S_v(u, v) S_v(u, v) - 
+	2(D_{ij} - S(u, v)) S_{vv}(u, v) \\
+\Downarrow \\
+\Delta u = \frac{-\Der{F^2(u_i, v_j)}{u}}{\Der{^2F^2(u_i, v_j)}{u^2}} = \\
+ = \frac{-(D_{ij} - S(u_i, v_j)) S_u(u_i, v_j)}{(D_{ij} - S(u_i, v_j)) 
+S_{uu}(u_i, v_j) - S_u(u_i, v_j)^2} \\[12pt]
+\Delta v = \frac{-\Der{F^2(u_i, v_j)}{v}}{\Der{^2F^2(u_i, v_j)}{v^2}} = \\
+ = \frac{-(D_{ij} - S(u_i, v_j)) S_v(u_i, v_j)}{(D_{ij} - S(u_i, v_j)) 
+S_{vv}(u_i, v_j) - S_v(u_i, v_j)^2}.
+\end{gather*}
+
+Az új paraméterértékek az elõzõ módszer végén látott egyszerû összeadással
+kiszámíthatók:
+\begin{eqnarray*}
+u_i^* &=& u_i + \Delta u \\
+v_j^* &=& v_j + \Delta v.
+\end{eqnarray*}
+
+A bemutatott paraméter korrekciós eljárások mindegyike csupán javít a $D_{ij}$
+ponthoz tartozó paraméterértékeken, de nem adja meg azok pontos értékét. Ez
+azt jelenti, hogy amennyiben ezeket az eljárásokat egymás után többször
+végrehajtjuk adott $D_{ij}$ pont esetén, akkor a hozzá tartozó hibavektor az
+$S(u,v)$ közelítõ felületre merõleges egyeneshez fog közelíteni.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Mérési pontok vágása}
+\label{fejezet:elhagyás}
+
+Elõfordulhat, hogy a rendelkezésre álló mért pontok közül nem akarjuk az
+összeset figyelembe venni az approximáció során. Ennek az egyik oka lehet, hogy
+a mért felületet több felületdarabbal akarjuk közelíteni, amelyek akár
+különbözõ reprezentációban lesznek elõállítva. A más felületdarabokhoz tartozó
+pontokat nem kell figyelembe venni az approximáció során. Az elhagyandó pontok
+megadására két megoldás jöhet szóba:
+
+\begin{enumerate}
+\item Azokat a térbeli pontokat adjuk meg, amelyeket nem szeretnénk az
+approximációs lépésben felhasználni. A pontok nehezen határozhatók meg akkor,
+ha nincsenek mátrixba rendezve, hanem csak egy pontfelhõ a bemenet. Ebben az
+esetben definiálhatunk térbeli téglatesteket vagy bonyolultabb testeket, és a
+testek belsejébe esõ pontokat tekintjük elhagyhatónak. Tegyük fel, hogy a mért
+pontok egy mátrixba rendezettek, és a mátrix $n+1 \times m+1$-es. Ekkor
+megadhatunk poligonokat a $[0,n] \times [0,m]$ téglalapon, és azokat a
+pontokat hagyjuk el, amelyeknek az indexe valamelyik poligon belsejébe esik.
+
+Ennél a módszernél már az approximációs lépés megkezdése elõtt el tudjuk
+dönteni, hogy mely pontokat kell kihagyni. Ebben az esetben a megjelenítésnél
+fordulnak elõ nehézségek, mivel a paraméterezés megtartása nélkül nem tudjuk
+eldönteni, hogy a felületet milyen paraméterhelyeken nem kell kiértékelnünk.
+
+\item Paramétertérbeli pontokat adunk meg, és a hozzájuk tartozó térbeli
+pontokat hagyjuk el a közelítésbõl. Ebben az esetben már ismernünk kell
+valamilyen kezdeti paraméterezést, hogy az approximáció elõtt meg tudjuk
+határozni a fölösleges pontokat, viszont megjelenítésnél könnyen el lehet
+dönteni egy paramétertérbeli pontról, hogy ott a felületet ki kell-e
+értékelni. Az elhagyandó pontok megadása itt is történhet a paramétertérben
+megadott poligonokkal.
+\end{enumerate}
+
+Ha el tudjuk dönteni egy mért adatról, hogy az fontos-e, akkor az
+approximációban a korábbi fejezetben tárgyalt lineáris egyenletrendszerekbõl
+egyszerûen el kell hagyni a megfelelõ tagokat. Mi a második megoldást fogjuk
+választani, azaz a paramétertérben adott poligonok határozzák meg az
+elhagyandó pontokat. A minimalizás problémája a következõképpen módosul:
+\[
+\sum_{i=0}^k \sum_{j=0}^l \chi(u_i, v_j) \Norma{ D_{ij} - S(u_i,v_j) }^2 
+	\longrightarrow \text{minimum},
+\]
+\noindent ahol
+\[
+\chi(u,v) = \left\{ \begin{array}{cl}
+		1, & \text{ha $(u,v)$ elhagyandó paraméter} \\
+		0, & \text{különben}
+	\end{array}\right..
+\]
+
+Ezután a $\chi$ függvény segítségével már könnyen fel tudjuk írni a megoldandó
+lineáris egyenletrendszereket. A feladat most már annak meghatározása, hogyan
+dönthetõ el hatékonyan egy pontról, hogy belül van-e a paramétertér egy adott
+poligonján.
+
+\subsection{Poligon belsõ pontjai}
+
+Ebben az részben azt vizsgáljuk meg, hogyan lehet megadni az elõzõ szakaszban
+szereplõ $\chi$ függvényt.
+
+Tegyük fel, hogy adott egy $S$ poligon a síkon pontjaival ($P_0$, $P_1$,
+\dots, $P_n$, $P_n=P_0$), adott a sík egy $Q$ pontja és adott egy $e$ egyenes
+a poligonon kívül. Legyen $R$ a $Q$-ból $e$-re állított merõleges szakasz
+talppontja. A $Q$ pontot az $S$ poligonon kívülinek tekintjük, ha páratlan sok
+olyan $\overline{P_i P_{i+1}}$ szakasz létezik, melyre a $\overline{QR}$ és
+$\overline{P_i P_{i+1}}$ szakaszok metszik egymást.
+
+\begin{figure}[ht]
+\centering
+\includegraphics{poligon.ps}
+\caption{Poligon belsõ és külsõ pontjai.}
+\end{figure}
+
+Tehát elegendõ azt megszámolnunk, hogy hány poligon oldallal van közös pontja
+a $\overline{QR}$ szakasznak. Legyen a vizsgált poligon oldal az
+$\overline{AB}$ szakasz. Ekkor $Q$, $R$, $A$, $B \in \mathbb{R}^2$, a két
+egyenes egyenlete pedig:
+\begin{gather*}
+(x - Q)^T n^{(1)} = 0,\;
+	n^{(1)} = \begin{bmatrix} -R_2+Q_2 \\ R_1-Q_1 \end{bmatrix},\\
+(x - A)^T n^{(2)} = 0,\;
+	n^{(2)} = \begin{bmatrix} -B_2+A_2 \\ B_1-A_1 \end{bmatrix}.
+\end{gather*}
+
+Az $n^{(1)}$ és $n^{(2)}$ vektorok a szakaszok normálvektorai.  Két szakasz
+metszi egymást, ha mindkét szakaszra igaz, hogy végpontjaik a másik szakasznak
+két különbözõ oldalán vannak. A $Q$ és az $R$ pont az $\overline{AB}$ szakasz
+két különbözõ oldalán van akkor és csak akkor, ha
+\begin{eqnarray*}
+(Q - A)^T n^{(2)} \leq 0 \; &\text{és}& \; (R - A)^T n^{(2)} \geq 0 \\
+	&\text{vagy}& \\
+(Q - A)^T n^{(2)} \geq 0 \; &\text{és}& \; (R - A)^T n^{(2)} \leq 0
+\end{eqnarray*}
+teljesül. Ugyanezeket a feltételeket kell fogalmazni az $A$ és $B$ pontokra is.
+Összefoglalva a $\overline{QR}$ és $\overline{AB}$ szakaszok metszik egymást
+akkor és csak akkor, ha
+\begin{eqnarray*}
+([A - Q]^T n^{(1)}) ([B - Q]^T n^{(1)}) & \leq & 0 \\
+	& \text{és} & \\
+([Q - A]^T n^{(2)}) ([R - A]^T n^{(2)}) & \leq & 0
+\end{eqnarray*}
+teljesül. Ezzel a számítási módszerrel már könnyedén és hatékonyan tudjuk
+eldönteni egy paramétertérbeli pontról, hogy egy poligonon belül vagy kívül
+helyezkedik el.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter[Vizsgálat]{Felület approximációs módszerek vizsgálata}
+
+Ebben a fejezetben a korábban tárgyalt módszereket vizsgáljuk meg és
+hasonlítjuk össze õket különbözõ szempontok szerint. Az algoritmusok bemenete
+térbeli pontok mátrix formába rendezett halmaza, amelyet mi egy folytonos
+felület mérésvel kapunk meg. Az algoritmusok kimenete pedig egy B-Spline
+felület, amit a bemenõ pontokon végzett approximációval állítunk elõ. A cél
+az, hogy az eredményül kapott felület minél inkább közelítse meg a bemenetként
+kapott pontokat, de a felület legyen a lehetõ legsimább. Ez valójában
+ellentmondást hordoz, hiszen a legsimább felület a sík lap, ez viszont nagyon
+kevés ponthalmazt fog jól közelíteni, ezért kompromisszumokra lesz szükségünk.
+
+Az algoritmusokat \emph{Intel Pentium100} processzoron futtattuk, az operációs
+rendszer \emph{Linux} volt.
+
+\section{Vizsgálati módszerek}
+
+Az algoritmusok egyik legfontosabb vizsgálati szempontja lesz, hogy milyen
+pontosan kaptuk vissza azt a felületet, amelyet mintavételezve a bemeneti
+pontokat meghatároztuk. A bemeneti pontok nem minden esetben a kiinduló
+felület pontjai, azokat véletlenszerû nagyságú és irányú vektorokkal eltoljuk,
+ezzel egy lokálisan egyáltalán nem sima, de globálisan mégis az eredeti
+felület alakjához hasonlító ponthalmazt kapunk.
+
+A kiinduló és az eredményül kapott felületet összehasonlíthatjuk
+numerikusan. Az egyik módszer, hogy a felület és a bemeneti pontok közötti
+eltérések négyzetének átlagát számoljuk ki. Ha a kiinduló felület egy B-Spline
+reprezentációval adott felület volt, akkor megvizsgálhatjuk az eredeti- és a
+kapott kontrollpontok közötti eltérést is.
+
+A másik vizsgálati módszer vizuális, a képernyõn megnézzük a két felületet, és
+úgy hasonlítjuk össze. A felületek megjelenítésére két módszer terjedt el:
+
+\begin{itemize}
+\item Paramétervonalas ábrázolás. Ekkor csak a felület paramétervonalait
+láthatjuk valamilyen sûrûséggel. Ezzel a megjelenítéssel a felület takart
+részei is látszódnak, viszont nehéz észrevenni a felület kis változásait.
+
+\begin{figure}[ht]
+\centering
+\includegraphics{param.ps}
+\caption{Paramétervonalas ábrázolás.}
+\end{figure}
+
+\item Árnyékolt ábrázolás. Ezt a módszert használva a teljes felület
+megjelenik, és a takart részek nem láthatók. A felület színezését fel lehet
+használni a Gauss- és Minkowski-görbületek jelölésére. Az azonos színû részek
+azonos görbület értékeket jelentenek. Ez az ábrázolás elsõsorban a felület
+elhajlásának vizsgálatára használható, a felület színváltozása miatt a
+felületen bekövetkezett kis hirtelen eltérések is jól láthatók.
+
+\begin{figure}[ht]
+\centering
+\subfigure[Gauss görbület]{\includegraphics{gauss.ps}}
+\subfigure[Minkowski görbület]{\includegraphics{minkowski.ps}}
+\caption{Árnyékolt ábrázolás.}
+\end{figure}
+\end{itemize}
+
+A két ábrázolást esetleg együtt is alkalmazhatjuk. A felület mellett még meg
+lehet jeleníteni a felülethez tartozó kontrollpoligont, vagy a felület
+normálisát is (\ref{felületek:egyéb}. ábra).
+
+\begin{figure}
+% 730x730
+\centering
+\subfigure[Kontrollpontok és kontrollpoligon]{\includegraphics{cont.ps}}
+\subfigure[Normális vektorok és paramétervonalak.]
+	{\includegraphics{normals.ps}}
+\caption{Kiegészítõ információk megjelenítése.}
+\label{felületek:egyéb}
+\end{figure}
+
+A kapott eredményen kívül fontos az is, hogy milyen gyors az algoritmus. A
+sebesség különösen azoknál az algoritmusoknál fontos, amelyek valamilyen
+iterációt is végeznek.
+
+A bemenõ adatokat három felületrõl mintát véve fogjuk megkapni. A három
+felület B-Spline reprezentációban adott, de a paramétereik különbözõk. A
+felületeket a \ref{felületek:minta}. ábrán láthatjuk. A felületek paramétereit
+a \ref{táblázatok:1}. táblázat tartalmazza, a knot eloszlás egyenletes.
+
+\begin{figure}
+% 730x730
+\centering
+\subfigure[1. felület]{\includegraphics{first.ps}}
+\subfigure[2. felület]{\includegraphics{second.ps}}
+\subfigure[3. felület]{\includegraphics{third.ps}}
+\caption{A vizsgálatok során közelített felületek.}
+\label{felületek:minta}
+\end{figure}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|*3{c|}}
+\hline
+ & 1. felület & 2. felület & 3. felület \\ \hline
+bázisfüggvény fokszáma $u$ irányba & 3 & 4 & 3 \\
+bázisfüggvény fokszáma $v$ irányba & 3 & 4 & 3 \\
+kontrollpontok száma $u$ irányba & 4   & 5 & 7 \\
+kontrollpontok száma $v$ irányba & 4   & 5 & 7 \\
+\hline
+\end{tabular}
+\caption{A kiinduló felületek paraméterei.}
+\label{táblázatok:1}
+\end{table}
+
+\section{Legkisebb négyzetek módszere}
+
+Ebben a szakaszban a legkisebb négyzetek módszerére adott két megoldást
+hasonlítjuk össze. A bemenõ adatokat az elõzõ szakaszban megadott felületek
+szolgáltatják. A paraméterteret felosztjuk $30 \times 30$-as négyzetre és a
+sarkokhoz tartozó pontokban kiértékeljük a felületet, majd a kapott pontokat
+eltoljuk véletlenszerû vektorokkal, és ezek a pontok adják a bemenõ adatokat.
+A \ref{táblázatok:2}. táblázat a \ref{fejezet:approx1}. részben tárgyalt
+algoritmus alkalmazásával kapott megoldások adatait tartalmazza. A kisebb
+mátrixszal dolgozó algoritmus, amit a \ref{fejezet:approx2}. részben adtunk
+meg, a \ref{táblázatok:3}. táblázatban szereplõ eredményeket adta. Az
+algoritmust mindhárom felületre alkalmaztuk, a hiba 0.05 volt (a véletlenszerû
+vektorok abszolut értéke kisebb vagy egyenlõ 0.05-el). A felület pontjai benne
+vannak a $[0,1]\times[0,1]\times[0,1]$ kockában, így a 0.05 5\%-os mérési
+hibát jelent. A közelítõ B-Spline paramétereiként ugyanazokat az értékeket
+használtuk, mint az eredeti felületnél. A knot eloszlás egyenletes. A két
+megoldás ugyanazt az átlagos hibanégyzetet adja, viszont a futásidõk a kisebb
+mátrixot használó eljárás esetén kisebbek.
+
+\begin{table}
+\centering
+\begin{tabular}{|l|*2{c|}}
+\hline
+& átlagos hibanégyzet & CPU idõ(sec) \\ \hline
+1. felület & 0.000836745 & 2.40 \\
+2. felület & 0.00076617 & 5.15 \\
+3. felület & 0.000750532 & 10.91 \\ \hline
+\end{tabular}
+\caption{Legkisebb négyzetek módszere I.}
+\label{táblázatok:2}
+\end{table}
+
+\begin{table}
+\centering
+\begin{tabular}{|l|*2{c|}}
+\hline
+& átlagos hibanégyzet & CPU idõ(sec) \\ \hline
+1. felület & 0.000836745 & 1.94 \\
+2. felület & 0.00076617 & 4.33 \\
+3. felület & 0.000750532 & 6.77 \\ \hline
+\end{tabular}
+
+\caption{Legkisebb négyzetek módszere II.}
+\label{táblázatok:3}
+\end{table}
+
+Érdemes megvizsgálni, hogy az eljárások milyen eredményt adnak abban az
+esetben, ha a generált felület nagyobb fokszámú B-Spline, mint a kiinduló
+felület. A \ref{táblázatok:4}. táblázat az 1. felületre alkalmazott
+II. algoritmus eredményeit mutatja, a kontrollpontok száma mind a négy esetben
+7 volt mindkét irányban. Ha a fokszám nem ugyanannyi volt, mint a kiinduló
+B-Spline felület fokszáma, akkor az átlagos hibanégyzet megnõtt, majd a
+fokszám további növelésével lassan csökkent. A végrehajtási idõ nagyobb
+fokszám esetén megnõ, ennek az az oka, hogy a közelítés során sokszor kell
+kiértékelni a bázisfüggvényeket. A rekurzív kiértékeléshez szükséges idõ a
+fokszám eggyel való növelésével duplájára nõ. A \ref{felületek:4}. ábra a
+3. és 6. fokú bázisfüggvényekkel kapott felületeket mutatja. Az ábrákon a
+Minkowski görbület szerinti színezés látható.
+
+\begin{table}
+\centering
+\begin{tabular}{|*3{c|}}
+\hline
+fokszám(u,v) & átlagos hibanégyzet & CPU idõ(sec) \\ \hline
+3 & 0.00078559 & 7.3 \\
+4 & 0.000785894 & 9.09 \\
+5 & 0.000785884 & 12.77 \\
+6 & 0.000785841 & 17.86 \\ \hline
+\end{tabular}
+\caption{Fokszámnövelés.}
+\label{táblázatok:4}
+\end{table}
+
+\begin{figure}
+% 730 x 730
+\centering
+\subfigure[Fokszám (u,v): 3]{\includegraphics{4a.ps}}
+\subfigure[Fokszám (u,v): 6]{\includegraphics{4b.ps}}
+\subfigure[Fokszám (u,v): 3, kontrollpoligon]
+	{\includegraphics{4a_control.ps}}
+\subfigure[Fokszám (u,v): 6, kontrollpoligon]
+	{\includegraphics{4b_control.ps}}
+\caption{Fokszámnöveléssel kapott felületek.}
+\label{felületek:4}
+\end{figure}
+
+A másik lehetõség a paraméterek megváltoztatására, ha több kontrollpontot
+használunk. A \ref{táblázatok:5}. táblázatban szereplõ értékeket az 1. felület
+közelítésével kaptuk, a B-Spline fokszáma 3 az $u$ és a $v$ irányban, a knot
+eloszlás egyenletes. Az I. algoritmust használtuk a közelítéshez. A
+\ref{felületek:5}. ábra a 16 illetve 256 kontrollponttal elõállított
+felületeket mutatja. Ha több kontrollpontot használunk, akkor a mérési adatok
+hibáját is közelíteni fogja a felület, ezért egyenetlenebb felületet
+kapunk. Ezt a problémát a késõbb tárgyalt funkcionálok meg fogják oldani.
+
+\begin{table}
+\centering
+\begin{tabular}{|*3{c|}}
+\hline
+kontrollpontok száma & átlagos hibanégyzet & CPU idõ(sec) \\ \hline
+16 (4$\times$4)& 0.000836745 & 2.40 \\
+64 (8$\times$8)& 0.000795317 & 16.73 \\
+144 (12$\times$12)& 0.000702113 & 74.86 \\
+256 (16$\times$16)& 0.000616019 & 222.98 \\ \hline
+\end{tabular}
+\caption{Kontrollpontok számának növelése.}
+\label{táblázatok:5}
+\end{table}
+
+\begin{figure}
+% 730 x 730
+\centering
+\subfigure[Kontrollpontok: 16(4$\times$4)]{\includegraphics{5a.ps}}
+\subfigure[Kontrollpontok: 256(16$\times$16)]{\includegraphics{5b.ps}}
+\subfigure[Kontrollpontok: 16(4$\times$4), kontrollpoligon]
+	{\includegraphics{5a_control.ps}}
+\subfigure[Kontrollpontok: 256(16$\times$16), kontrollpoligon]
+	{\includegraphics{5b_control.ps}}
+\caption{Kontrollpontok számának növelésével kapott felületek.}
+\label{felületek:5}
+\end{figure}
+
+A \ref{táblázatok:6}. táblázatban szereplõ értékek azt mutatják, hogy mennyire
+pontosan kapjuk vissza a kontrollpontokat a közelítés során. A táblázat sorai
+a 3 felületre kapott eredményt mutatják, az értékek az eredeti és a számolt
+kontrollpontok közötti távolságnégyzetek átlagai. Az elsõ oszlop eredményeit
+úgy kaptuk, hogy az I. algoritmust a felületek hiba nélküli mintavételezésével
+kapott pontjaira alkalmaztuk. A második oszlop a hibával terhelt adatokra
+alkalmazott közelítés eredményeit mutatja (a maximális hiba ebben az esetben
+is 0.05 volt). A közelített felület paraméterei (kontrollpontok, knot
+eloszlás, fokszám) megegyeznek a kiinduló felület paramétereivel. Ha nem volt
+hiba a mérések során, akkor az eredmények szerint a kontrollpontokat nagy
+pontossággal visszakapjuk, a módszer stabil. A \ref{felületek:6}. ábra az
+1. felület közelítésével kapott kontrollpoligonokat mutatja a két esetben. A
+két poligon között szabad szemmel alig kimutatható a különbség.
+
+\begin{table}
+\centering
+\begin{tabular}{|l|c|c|} 
+\hline
+& hiba nélkül & hibával \\ \hline
+1. felület & 1.16861e-06 & 0.0188989 \\
+2. felület & 6.03868e-06 & 0.0580196 \\
+3. felület & 5.00293e-07 & 0.0360018 \\ \hline
+\end{tabular}
+\caption{Kontrollpontok eltérései.}
+\label{táblázatok:6}
+\end{table}
+
+\begin{figure}
+% 730 x 730
+\centering
+\subfigure[Bemenõ adat hibamentes.]{\includegraphics{6a_control.ps}}
+\subfigure[Bemenõ adat hibával terhelt.]{\includegraphics{6b_control.ps}}
+\caption{1. felületbõl kapott kontrollpontok eltérései.}
+\label{felületek:6}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Funkcionálok}
+
+Ahogy azt a \ref{fejezet:funkcional}. szakaszban láthattuk, az általunk
+elõállított felületeknek gyakran kell megfelelniük valamilyen simaságot
+eredményezõ feltételnek. Bemutattunk három funkcionált, amelyek ilyen simító
+feltételt fogalmaznak meg. Ebben a szakaszban azokat az eljárásokat
+vizsgáljuk, amelyek ezeket a funkcionálokat használva simítják az elkészült
+felületet. 
+
+A simaságot vizsgálni nagyon nehéz, mert nem tudjuk adatokkal leírni, hogy egy
+felület mennyire sima vagy nem. A vizsgálatok éppen ezért nagyrészt vizuálisan
+történnek. Támpontot az jelent számunkra, hogy a felületeket speciálisan
+színezzük. Minden pont színe az adott pontban mért Minkowski-görbület értékét
+reprezentálja. Egy képen belüli azonos színek azonos görbületi értéket
+jelentenek. 
+
+\begin{figure}
+% 730 x 730
+\centering
+\includegraphics{41.ps}
+\caption{Az eredeti (nem simított) felület. $\mu=0$, Távolságnégyzet: 0.000782305.}
+\label{felületek:41}
+\end{figure}
+
+Induljunk ki a \ref{felületek:41}. ábrán látható 2. felületbõl. Ezen nem
+végeztünk simítást, ezért a $\mu$ értéke $0$. A \ref{felületek:42}.,
+\ref{felületek:43}. és \ref{felületek:44}. ábrákon az eredeti felület
+különbözõ eljárással simított képét láthatjuk.
+
+A felület simításakor meg kell határoznunk egy hibahatárt, amelyet még
+hajlandóak vagyunk elfogadni annak érdekében, hogy egy számunkra jobb, simább
+felületet kapjunk. Az átlagos távolságnégyzet értékének ezen a hibahatáron
+belül kell esnie, de legalábbis nem lépheti át nagy mértékben. A program
+elõször $\mu=0.5$-es súllyal kezeli a simaságot leíró funkcionált. Ha az így
+kapott felület átlagos távolságnégyzetes eltérése a mért adatoktól nem haladja
+meg a hibahatárt, akkor növeli ezt a fontossági értéket, egyébként
+csökkenti. $\mu$ értéke $0$ és $1$ közé kell essen. A következõ értéket mindig
+intervallum felezéssel állapítjuk meg. A program $8$ lépésben határozza meg a
+$\mu$ értékét. Tapasztalataink szerint ez elég ahhoz, hogy nagy pontossággal
+megközelítse az átlagos távolságnégyzet értéke a hibahatárt.
+
+
+\begin{figure}
+% 730 x 730
+\centering
+\subfigure[$\mu=0.664062$, Távolságnégyzet: 0.00159082.]{\includegraphics{42a.ps}}
+\subfigure[$\mu=0.804688$, Távolságnégyzet: 0.00330822.]{\includegraphics{42b.ps}}
+\caption{Felület minimalizálással simított felület.}
+\label{felületek:42}
+\end{figure}
+
+\begin{figure}
+% 730 x 730
+\centering
+\subfigure[$\mu=0.989197$, Távolságnégyzet: 0.00160427.]{\includegraphics{43a.ps}}
+\subfigure[$\mu=0.996765$, Távolságnégyzet: 0.00323295.]{\includegraphics{43b.ps}}
+\caption{Görbületi energia minimalizálással simított felület.}
+\label{felületek:43}
+\end{figure}
+
+\begin{figure}
+% 730 x 730
+\centering
+\subfigure[$\mu=0.414062$, Távolságnégyzet: 0.00162294.]{\includegraphics{44a.ps}}
+\subfigure[$\mu=0.570312$, Távolságnégyzet: 0.00315833.]{\includegraphics{44b.ps}}
+\caption{Kontrollpoligon minimalizálással kapott felület.}
+\label{felületek:44}
+\end{figure}
+
+Nagyon lényeges vizsgálati szempont, hogy a simítás fontosságának mértéke,
+vagyis a $\mu$ értéke mennyire befolyásolja a távolságnégyzetek
+változását. Mindhárom funkcionál esetében azt tapasztaltuk, hogy rontja a mért
+pontok közelítését, ami az elméleti eredményeket is alátámasztja. A
+\ref{táblázatok:21}. táblázat adataiból és a rájuk épülõ
+\ref{grafikon:21}. grafikonról leolvasható, hogy a görbületi energia
+minimalizálása a legkevésbé érzékeny a $\mu$ változtatására. A kontrollpont
+háló simításakor viszont számolni kell azzal, hogy az átlagos távolságnégyzet
+nagyon megnõhet, ha nagy súllyal ($\mu$) szerepel a simító feltétel.
+
+\begin{table}
+\centering
+\begin{tabular}{|c|c|c|c|} 
+\hline
+$\mu$ & Felszín & Görbületi energia & Kontrollpoligon \\
+      & minimalizálása &   minimalizálása  &   minimalizálása\\
+\hline 
+0   & 0.000721606 & 0.000721606 & 0.000721606 \\
+0.1 & 0.000739748 & 0.00072448  & 0.000857692 \\
+0.2 & 0.000802553 & 0.000733203 & 0.00117463  \\
+0.3 & 0.000928393 & 0.000748307 & 0.00172296  \\
+0.4 & 0.00114852  & 0.000770995 & 0.00259923  \\
+0.5 & 0.00151978  & 0.000803624 & 0.00398552  \\
+0.6 & 0.00215595  & 0.000850984 & 0.00624844  \\ 
+0.7 & 0.00331956  & 0.000924157 & 0.0102342   \\
+0.8 & 0.00577739  & 0.00105571  & 0.0184297   \\
+0.9 & 0.0131685   & 0.00139825  & 0.0429893   \\ \hline
+CPU idõ (sec) & 194.67 & 207.31 & 205.24 \\ \hline
+\end{tabular}
+\caption{Átlagos távolságnégyzet változása a 3. felület esetében $\mu$
+értékének módosítása mellett.}
+\label{táblázatok:21}
+\end{table}
+
+\begin{figure}
+% ???x???
+\centering
+\includegraphics{gfc123.ps}
+\caption{Átlagos távolságnégyzet változása különbözõ funkcionálok használata
+során a 3. Felület esetében.}
+\label{grafikon:21}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Paraméter korrekció}
+
+A \ref{fejezet:parkor}. szakaszban bemutattuk, hogy a mért pontok és a közelítõ
+felület távolsága, kezdeti paraméterezés esetén nem a megfelelõ értéket
+adja. Módszereket muttatunk arra, hogy hogyan lehet módosítani egy adott mért
+ponthoz tartozó felületi paraméterértékeket annak érdekében, hogy a kapott
+távolság a valódi távolságot mutassa. Most ezeket az eljárásokat fogjuk
+vizsgálni. 
+
+Egyazon felületen mindhárom eljárással elvégezzük a paraméter korrekciót. A
+korrekciós eljárásokat 6 iterációs lépésen keresztül vizsgáljuk. A
+0. iterációs lépésben a kezdeti paraméterezéssel kapott értékek
+szerepelnek. Megfigyelhetjük, hogy mindhárom eljárás ugyanazon értékhez
+konvergál csak különbözõ gyorsasággal. Az elsõ eljárás közelít leglasabban a
+tényleges távolságértékhez. A második és harmadik eljárás közel azonos
+sebességgel konvergál.
+
+\begin{table}
+\centering
+\begin{tabular}{|c|c|c|c|} 
+\hline
+Iterációs lépésszám & Vetítéssel  & Taylor-sorral & Newton módszerrel \\ \hline
+0. & 0.000745148 & 0.000745148 & 0.000745148 \\
+1. & 0.000387061 & 0.000360401 & 0.000365807 \\
+2. & 0.000365196 & 0.000359109 & 0.000359311 \\
+3. & 0.000360686 & 0.000358385 & 0.000358364 \\
+4. & 0.000358959 & 0.000357719 & 0.000357696 \\
+5. & 0.000357983 & 0.000357096 & 0.000357086 \\
+6. & 0.000357531 & 0.000356799 & 0.000356793 \\ \hline
+CPU idõ (sec) & 545.92 & 153.73 & 167 \\ \hline
+\end{tabular}
+\caption{Átlagos távolságnégyzet változása az 1. felület
+esetében. Kontrollpontok száma: 10x10}
+\label{táblázatok:41}
+\end{table}
+
+\begin{table}
+\centering
+\begin{tabular}{|c|c|c|c|} 
+\hline
+Iterációs lépésszám & Vetítéssel  & Taylor-sorral & Newton módszerrel \\ \hline
+0. & 0.000782305 & 0.000782305 & 0.000782305 \\
+1. & 0.000435505 & 0.000407178 & 0.000416325 \\
+2. & 0.000412292 & 0.000406005 & 0.000406385 \\
+3. & 0.000407838 & 0.000405344 & 0.00040523  \\
+4. & 0.000406018 & 0.00040472  & 0.000404573 \\
+5. & 0.000404926 & 0.000404069 & 0.000403986 \\
+6. & 0.000404394 & 0.000403791 & 0.000403673 \\ \hline
+CPU idõ (sec) & 544.64 & 153.93 & 167.06 \\ \hline
+\end{tabular}
+\caption{Átlagos távolságnégyzet változása a 2. felület esetében.
+Kontrollpontok száma: 10x10}
+\label{táblázatok:42}
+\end{table}
+
+\begin{table}
+\centering
+\begin{tabular}{|c|c|c|c|} 
+\hline
+Iterációs lépésszám & Vetítéssel  & Taylor-sorral & Newton módszerrel \\ \hline
+0. & 0.00294967 & 0.00294967 & 0.00294967 \\
+1. & 0.00150967 & 0.00140444 & 0.00148787 \\
+2. & 0.00129486 & 0.00123583 & 0.00125694 \\
+3. & 0.00123009 & 0.00117168 & 0.0011884  \\
+4. & 0.00120066 & 0.00113616 & 0.00115166 \\
+5. & 0.00120114 & 0.00111088 & 0.00112544 \\
+6. & 0.00122973 & 0.00110018 & 0.00111393 \\ \hline
+CPU idõ (sec) & 194.09 & 23.22 & 28.85 \\ \hline
+\end{tabular}
+\caption{Átlagos távolságnégyzet változása a 3. felület esetében.
+Kontrollpontok száma: 5x5}
+\label{táblázatok:43}
+\end{table}
+
+
+\begin{figure}
+% ???x???
+\centering
+\subfigure[1. Felület esetében.]{\includegraphics{gs123.ps}}
+\subfigure[2. Felület esetében.]{\includegraphics{gh123.ps}}
+\caption{Átlagos távolságnégyzet változása különbözõ eljárások használata
+során.}
+\label{grafikon:41}
+\end{figure}
+
+A \ref{grafikon:41}. ábrán látható grafikonok a \ref{táblázatok:41}. és
+\ref{táblázatok:42}. táblázatok adatait jelenítik meg. A vízszintes tengely
+az elvégzett iterációs lépések számát jelenti, míg a függõleges tengely az
+adott lépés után mért átlagos távolságnégyzetet. A 0. iterációs lépést
+elhagytuk, mert azonos kezdeti paraméterezésbõl indult ki mindhárom eljárás,
+így a kezdeti átlagos távolságnégyzet is megegyezik. Eltérés tehát csak az
+1. iterációs lépés elvégzése után figyelhetõ meg.
+
+\begin{figure}
+% ???x???
+\centering
+\subfigure[Vetítéssel.]{\includegraphics{gshc1.ps}}
+\subfigure[Taylor-sorral.]{\includegraphics{gshc2.ps}}
+\caption{Átlagos távolságnégyzet változása különbözõ felületek esetén.}
+\label{grafikon:42}
+\end{figure}
+
+A \ref{grafikon:42}. ábrán két korrekciós eljárás mûködését figyelhetjük meg
+különbözõ felületek esetében. Jól látható, hogy a vetítéssel módosító
+algoritmus görbéje az elsõ grafikonon, a 3. felület esetében nem monoton
+csökkenõ, tehát néhány lépés után nem javít, hanem ront a paraméterezésen. A
+második grafikonon ugyanez nem figyelhetõ meg, tehát a Taylor-sorral mûködõ
+eljárás mindig folyamatos javítást eredményezett (megfigyeléseink szerint
+ugyanez mondható el a Newton módszert alkalmazó algoritmusról is.)  Ebbõl arra
+következtethetünk, hogy a vetítésses paraméter korrekció hatékonysága erõsen
+függ a vizsgált felülettõl.
+
+Lényeges még, hogy milyen gyorsan adják meg az eljárások egy adott kezdeti
+paraméterezésbõl kiindulva a mért pontokhoz tartozó optimális
+paraméterezést. A \ref{táblázatok:41}., \ref{táblázatok:42}. és
+\ref{táblázatok:43}. táblázatok adatai mutatják, hogy az elsõ eljárás
+futásidõben is jelentõsen lemarad a másik két eljárástõl, amelyek közel azonos
+idõ alatt adják meg a végeredményt. A vetítéssel dolgozó eljárás
+alkalmazásakor minden pont esetén ki kell számolni a paramétervonalak
+hosszát, ez eredményezi a nagy futásidõket.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Mérési pontok vágása}
+
+A \ref{fejezet:elhagyás}. szakaszban megvizsgáltuk, hogy milyen lehetõségek
+jöhetnek szóba a mérési pontok vágásának megvalósításához. Mi azt a megoldást
+választottuk, amikor az elhagyandó pontokat a paramétertérben megadott
+poligonok határozzák meg. Azt fogjuk megvizsgálni, hogy a pontok kizárása az
+approximációból hogyan befolyásolja a kontrollpoligont és az eltérésnégyzetek
+átlagait.
+
+A táblázatok a kiinduló és a közelítõ felület pontjai közötti átlagos
+távolságnégyzeteket hasonlítják össze. A táblázatok elsõ oszlopának
+eredményeit úgy kaptuk, hogy az összes bemenõ pontot figyelembe vettük a
+közelítés során. A második oszlopban szereplõ átlagos távolságnégyzeteket a
+mérési pontokra alkalmazott vágás utáni közelítés eredményeként kaptuk. A
+közelítõ felületeket a II. algoritmussal határoztuk meg, a vizsgálatokat az
+1. és a 2. felületre végeztük el. Vágás esetén az 1. felületbõl egy téglalap
+alakú sávot, a 2. felületbõl pedig egy háromszög alakú területet hagytunk el.
+
+A \ref{táblázatok:30}. és a \ref{táblázatok:31}. táblázatok a különbözõ
+fokszámú közelítõ felületekhez tartozó átlagos hibanégyzeteket hasonlítják
+össze. Mindegyik közelítõ felülethez egyenletes knot eloszlás tartozik, és a
+kontrollpontok száma 49 (7$\times$7). A \ref{táblázatok:30}. táblázatban a 3
+fokszámú B-Spline felülethez kisebb átlagos hibanégyzet tartozik, mint a
+magasabb fokszámú felületekhez. Ennek az lehet az oka, hogy az eredeti
+1. felület, amirõl a mintát vettük, egy 3. fokú B-Spline felület. Az
+1. felület esetén, amikor vágtuk a bemenõ pontokat, akkor kisebb
+hibanégyzeteket kaptunk, a 2. felület esetén pedig éppen fordítva, az összes
+bemenõ adat figyelembe vétele esetén volt kisebb a hibanégyzetek
+átlaga. Vágás esetén néhány kontrollpontra kevesebb megkötés adódik a
+közelítés során, ezért a vágás után megmaradt pontokat az elõállított felület
+jobban fogja közelíteni, mint vágás nélküli esetben. De amint azt az
+1. felület esete mutatja, a megmaradt pontok jobb közelítése nem biztos, hogy
+ellensúlyozni tudja az elhagyott részekhez tartozó esetleg kisebb
+hibanégyzeteket, ezért kaphattunk rosszabb eredményt vágás alkalmazása
+esetén az 1. felületre.
+
+\begin{table}
+\centering
+\begin{tabular}{|*3{c|}}
+\hline
+fokszám(u,v) & vágás nélkül & vágással \\
+\hline
+3 & 0.00078559  & 0.000779993 \\
+4 & 0.000785894 & 0.000780064 \\
+5 & 0.000785884 & 0.000779822 \\
+6 & 0.000785841 & 0.000779719 \\
+\hline
+\end{tabular}
+\caption{Távolságnégyzetek változása a fokszám függvényében, az 1. felület
+esetén.}
+\label{táblázatok:30}
+\end{table}
+
+\begin{table}
+\centering
+\begin{tabular}{|*3{c|}}
+\hline
+fokszám(u,v) & vágás nélkül & vágással \\
+\hline
+3 & 0.000823847 & 0.000827035 \\
+4 & 0.000822822 & 0.000826087 \\
+5 & 0.0008227   & 0.000825964 \\
+6 & 0.000822412 & 0.000825749 \\
+\hline
+\end{tabular}
+\caption{Távolságnégyzetek változása a fokszám függvényében, a 2. felület
+esetén.}
+\label{táblázatok:31}
+\end{table}
+
+\begin{table}
+\centering
+\begin{tabular}{|*3{c|}}
+\hline
+kontrollpontok száma & vágás nélkül & vágással \\
+\hline
+16 (4$\times$4) & 0.000812069 & 0.000817699 \\
+25 (5$\times$5) & 0.000806032 & 0.000807511 \\
+36 (6$\times$6) & 0.000797865 & 0.000793167 \\
+49 (7$\times$7) & 0.00078559  & 0.000779993 \\
+\hline
+\end{tabular}
+\caption{Távolságnégyzetek változása a kontrollpontok számának függvényében, az
+1. felület esetén.}
+\label{táblázatok:33}
+\end{table}
+
+\begin{table}
+\centering
+\begin{tabular}{|*3{c|}}
+\hline
+kontrollpontok száma & vágás nélkül & vágással \\
+\hline
+16 (4$\times$4) & 0.00112126  & 0.00109032 \\
+25 (5$\times$5) & 0.000845686 & 0.000849877 \\
+36 (6$\times$6) & 0.000834935 & 0.000839458 \\
+49 (7$\times$7) & 0.000823847 & 0.000827035 \\
+\hline
+\end{tabular}
+\caption{Távolságnégyzetek változása a kontrollpontok számának függvényében, a
+2. felület esetén.}
+\label{táblázatok:32}
+\end{table}
+
+A \ref{táblázatok:33}. és \ref{táblázatok:32}. táblázat az azonos fokszámú
+felületekkel kapott eredményeket mutatja, a kontrollpontok számának
+függvényében. Az összes közelítõ felület 3. fokú B-Spline, egyenletes knot
+eloszlással. Ha a kontrollpontok számát növeljük, akkor az átlagos hibanégyzet
+csökken, mivel a felületet jobban hozzá tudjuk igazítani a mért pontokhoz. Az
+1. felület esetén (\ref{táblázatok:33}. táblázat) a mérési pontok vágásakor,
+a 2. felület esetén (\ref{táblázatok:32}. táblázat) pedig az összes pont
+figyelembe vételekor kaptunk kisebb átlagos távolságnégyzeteket.
+
+\begin{figure}
+% 730x730
+\centering
+\subfigure[Vágás nélkül.]{\includegraphics{33_1a.ps}}
+\subfigure[Vágással.]{\includegraphics{33_1b.ps}}
+\subfigure[Kontrollpoligon vágás nélkül.]{\includegraphics{33_1a_control.ps}}
+\subfigure[Kontrollpoligon vágással.]{\includegraphics{33_1b_control.ps}}
+\caption{Kontrollpoligon változása a mérési pontok vágásának hatására
+(kontrollpontok száma: 16 (4$\times$4), fokszám: 3).}
+\label{felületek:33_1}
+\end{figure}
+
+\begin{figure}
+% 730x730
+\centering
+\subfigure[Vágás nélkül.]{\includegraphics{33_2a.ps}}
+\subfigure[Vágással.]{\includegraphics{33_2b.ps}}
+\subfigure[Kontrollpoligon vágás nélkül.]{\includegraphics{33_2a_control.ps}}
+\subfigure[Kontrollpoligon vágással.]{\includegraphics{33_2b_control.ps}}
+\caption{Kontrollpoligon változása a mérési pontok vágásának hatására
+(kontrollpontok száma: 49 (7$\times$7), fokszám: 3).}
+\label{felületek:33_2}
+\end{figure}
+
+\begin{figure}
+% 730x730
+\centering
+\subfigure[Vágás nélkül.]{\includegraphics{32_1a.ps}}
+\subfigure[Vágással.]{\includegraphics{32_1b.ps}}
+\subfigure[Kontrollpoligon vágás nélkül.]{\includegraphics{32_1a_control.ps}}
+\subfigure[Kontrollpoligon vágással.]{\includegraphics{32_1b_control.ps}}
+\caption{Kontrollpoligon változása a mérési pontok vágásának hatására
+(kontrollpontok száma: 16 (4$\times$4), fokszám: 3).}
+\label{felületek:32_1}
+\end{figure}
+
+\begin{figure}
+% 730x730
+\centering
+\subfigure[Vágás nélkül.]{\includegraphics{32_2a.ps}}
+\subfigure[Vágással.]{\includegraphics{32_2b.ps}}
+\subfigure[Kontrollpoligon vágás nélkül.]{\includegraphics{32_2a_control.ps}}
+\subfigure[Kontrollpoligon vágással.]{\includegraphics{32_2b_control.ps}}
+\caption{Kontrollpoligon változása a mérési pontok vágásának hatására
+(kontrollpontok száma: 49 (7$\times$7), fokszám: 3).}
+\label{felületek:32_2}
+\end{figure}
+
+% konklúzió
+A vizsgálati eredményeknek megfelelõen az approximáció elvégzéséhez a
+négyzetes mátrixszot használó algoritmus a jobb, mivel a futásidõk rövidebbek
+és ugyanazt az eredményt adja, mint a másik vizsgált algoritmus.
+
+Ha az approximáció során simító funkcionált is alkalmazunk és annak súlya
+nagy, akkor használjuk a görbületi energiát minimalizáló funkcionált, mivel
+így a simított felület a mért pontok közelében marad. 
+
+A paraméterkorrekció elvégzéséhez semmiképpen nem ajánljuk a vetítéssel
+dolgozó módszert annak instabilitása és lassú konvergenciája miatt. A
+Taylor-soros és a Newton-iterációs módszerek a hatékonyság és az eredmények
+tekintetében közel azonos eredményt adtak.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Implementáció}
+
+Ebben a fejezetben az algoritmusok szemléltetéshez szükséges program modulok
+megvalósításáról lesz szó. Elõször áttekintjük a programok implementálásához
+használt környezetet, majd a rendszer által megvalósított osztályok feladatait
+vázoljuk. Ezután következik az osztályok és azok member függvényeinek a
+részletes leírása.
+
+\section{Környezet}
+
+A program elkészítéséhez a \emph{UNIX} operációs rendszert választottuk,
+grafikus környezetként pedig az \emph{X-Window system}-et. A választás egyik
+oka, hogy a \emph{UNIX} nagy grafikus teljesítményt képes nyújtani és a
+\emph{Linux} révén mindenki számára ingyenesen elérhetõ rendszer. Mi is
+\emph{Linux}-ot használtunk a programozáshoz egy személyi számítógépen.
+
+A térbeli, árnyékolt képek elõállításához a Brian Paul által készített
+\emph{MesaGL} rutinkönyvtárat használtuk, ami az \emph{OpenGL} hálózatról
+letölthetõ megvalósítása. Az \emph{OpenGL} egy szabványosított alkalmazói
+programozói interface számítógépi grafikák elõállításához, ami szinte minden
+platformon elérhetõ.
+
+Az \emph{OpenGL} csak egy alacsony szintû felületet nyújt, nem teszi lehetõvé
+geometriai alakzatokból összeállított képek könnyû létrehozását. Felhasználtuk
+a szintén ingyenes \emph{OpenGL}-re épülõ \emph{Visualization Toolkit}
+könyvtárat (a továbbiakban egyszerûen \emph{vtk}), amivel már könnyen
+összeállíthatunk több különbözõ geometriai alakzatból álló jeleneteket, és
+támogatja a felhasználói interakciót is.  Számunkra a háromszögekbõl álló
+poligonháló megjelenítése volt a legfontosabb, de ezt a \emph{vtk} nagyon jól
+támogatta.
+
+Az algoritmusok kódolásához a \emph{C++} programozási nyelv mellett
+döntöttünk, mivel egyszerre nyújtja a sok számítás elvégzéséhez szükséges
+hatékonyságot, és az objektum-orientált szemlélet világos és könnyen
+újrafelhasználható kódot eredményez jó programtervezés esetén. A felületek
+megjelenítéséhez a \emph{Tcl/Tk} interpreteres programozási nyelvet
+használtuk, mivel ez lehetõvé teszi a gyors programfejlesztést és módosítást,
+és az elõre kiszámított felületekbõl álló jelenetek összeállításához már nem
+szükséges nagy számítási teljesítmény. A \emph{vtk} jó csatlakozási felületet
+nyújt mindkét nyelvhez.
+
+A választott alaprendszerek hordozhatósága miatt az elkészült programmodulokat
+nagyon könnyû átvinni más rendszerekre is.
+
+\section{Osztályok és kapcsolatok}
+
+A felületek elõállításával kapcsolatos feladatok szempontjából a három
+legfontosabb osztály a következõ:
+
+\begin{enumerate}
+\item \emph{Base:} Egy tetszõleges knot-vektorhoz tartozó tetszõleges fokú
+B-Spline bázisfüggvényt reprezentál, le lehet kérdezni a bázisfüggvény
+paramétereit és a deriváltjait is.
+
+\item \emph{BSplineSurface:} Egy B-Spline felületet reprezentál, két
+\emph{Base} osztálybeli objektum, a knot-vektorok és a kontrollpontok alapján
+eltárolja a felületet. Lehetõséget nyújt a felület pontjainak lekérdezésére
+adott paraméterértékek mellett, ki tudja számítani az $u$ és $v$ irányú
+deriváltakat adott pontban, a Minkowski- és Gauss-görbületet, a felület
+normálisát, a felület görbületét, az elsõ és második alapmennyiségeket.
+Lekérdezhetjük a felület paramétereit.
+
+\item \emph{Approximation:} Ez az osztály valósítja meg a tényleges munkát, a
+mért adatokból elõállítja a felületet. Paraméterként megkapja a mért
+adatokat, a B-Spline felület fokszámát a két irányhoz, a knot-vektorban lévõ
+pontok számát a két irányhoz, és esetleg egy poligonhalmazt a paramétertérbõl
+elhagyandó pontok meghatározásához. Ezek után az osztály képes a következõ
+tevékenységek elvégzésére:
+
+\begin{enumerate}
+\item Legkisebb négyzetek módszere szerint a mért adatokhoz a paramétereknek
+megfelelõ approximáló B-Spline felület létrehozása.
+
+\item Paraméter korrekció végrehajtása. Az approximáló felület elõállítása
+után a mért pontokhoz tartozó paramétertérbeli pontokat módosítja oly módon,
+hogy a mért pont és a neki megfelelõ felületi pont közötti egyenes merõleges
+legyen a felületi ponthoz tartozó érintõ síkra. A módosítás után megpróbálja
+újra közelíteni a mért pontokat a módosított paraméterekkel.
+
+\item Funkcionálok kezelése. Az approximáció során nem csak a mért adatoktól
+való négyzetes eltérést veszi figyelembe az osztály, hanem az eltérések
+négyzetösszegéhez hozzávesz ,,valamilyen'' súllyal egy funkcionált is, és az
+így kapott összeget minimalizálja. A funkcionál a felület egyenetlenségét
+tükrözi, minél kisebb a funkcionál, annál simább a felület.
+\end{enumerate}
+
+Az approximáció paramétereként még megadható egy poligonokból álló halmaz,
+amely azt mutatja, hogy milyen pontokat kell elhagyni a paramétertérbõl az
+approximáció során. Ha egy paraméterpár szerepel valamelyik poligonban a
+halmazból, akkor a neki megfelelõ mért adat nem vesz részt a legkisebb
+négyzetek szerinti közelítésben. Ez lehetõvé teszi lyukas felületek
+közelítését.
+\end{enumerate}
+
+A három legfontosabb osztályon kívül még van néhány osztály és adattípus, 
+amelyeket az approximációt végzõ algoritmusok használnak:
+
+\begin{enumerate}
+\item \emph{SurfGen:} Ha már elõállítottunk egy B-Spline felületet, vagyis már
+van egy \emph{BSplineSurface} objektumunk, akkor azt egy állományba kell írni,
+hogy a \emph{vtk} meg tudja jeleníteni. Ezt a feladatot végzi el ez az
+osztály. Adott távolságonként mintát vesz a felületbõl és a kapott pontokat a
+\emph{vtk} számára értelmezhetõ formában lemezre menti. A felületi pontok
+mellett elmenti a kontrollpont hálót, és egy adott sûrûségû paramétervonal
+hálót is. A felületi pontokhoz segédadatként mellékeli a Gauss- és 
+Minkowski-görbületeket, amik a felület megjelenítéséhez szükségesek.
+
+Az osztály képes olyan formátumú adatok tárolására is, amelyeket késõbb mért
+adatként fel tud használni approximáláshoz. Ilyenkor a felületen végigmenve
+mintát vesz és egy véletlenszerû vektorral eltolja a kapott pontokat, így
+korábban elõállított felületekbõl tesztelési célból mesterségesen mért adatokat
+tudunk létrehozni. 
+
+\item \emph{Householder:} Az approximációs probléma megoldása során felmerülõ
+lineáris egyenletrendszerek megoldását végzi ez az osztály, a
+\emph{Householder transzformációt} felhasználva. 
+
+\item \emph{Exclusion:} Annak eldöntését segíti, hogy egy adott
+paramétertérbeli ponthoz tartozó mért térbeli pontot figyelembe kell-e venni
+az approximáció során. Paraméterként egy poligon halmazt kap, és a
+paramétertér méretét. A megadott poligonoknak a $[0,1]\times[0,1]$ négyzetben
+kell elhelyezkedni, és lineárisan képezi le õket az osztály a paramétertérre.
+
+\item \emph{Polygon:} Egyetlen poligon eltárolásához használt osztály. Le lehet
+kérdezni, hogy egy pont a poligonon belül vagy kívül helyezkedik el. 
+
+\item \emph{Point:} Egy $\mathbb{R}^3$-beli pont eltárolásához használt
+osztály.
+
+\item \emph{KnotVector:} Valós számokból álló tömb, a knot-vektor pontjainak
+eltárolásához.
+
+\item \emph{Matrix:} Egy mátrix template, értelmezve vannak rajta a megszokott
+mátrixmûveletek: skalárral való szorzás, mátrix szorzás, mátrix összeadás.
+
+\item \emph{Row:} Egy sorból álló mátrix.
+
+\item \emph{Col:} Egy oszlopból álló mátrix.
+
+\item \emph{Set:} Halmaz típus, az inicializáláskor megadott intervallumba
+tartozó számokat képes eltárolni. Az \emph{Exclusion} osztály használja.
+
+\item \emph{Functional:} Az approximáció során használt \emph{Q1}, \emph{Q2}
+és \emph{Q3} funkcionálok õsosztálya. Le lehet kérdezni a funkcionálban
+szereplõ tagok értékét egy adott paraméterpontban.
+\end{enumerate}
+
+\section{Referencia}
+
+% hasznos makrók
+\newenvironment{Member}{%
+	\begin{list}{}{
+		\setlength{\topsep}{1.3ex}
+		\setlength{\partopsep}{0pt}
+		\setlength{\leftmargin}{0.5in}
+		\setlength{\listparindent}{-0.5in}
+		\setlength{\labelwidth}{0pt}
+		\setlength{\itemsep}{0pt plus 1pt}
+		\setlength{\parsep}{0pt plus 1pt}
+		\setlength{\itemindent}{-0.5in}}
+	\ttfamily}
+	{\end{list}}
+
+\newenvironment{Params}
+	{\begin{list}{}{
+		\setlength{\topsep}{0pt}
+		\setlength{\partopsep}{0pt}
+		\setlength{\leftmargin}{1in}
+		\setlength{\labelwidth}{0.8in}
+		\setlength{\itemsep}{0pt plus 1pt}
+		\setlength{\parsep}{0pt plus 1pt}
+		\setlength{\itemindent}{0pt}}}
+	{\end{list}\vspace{1ex}}
+
+\newcommand{\Class}[2]{\subsubsection{#1}
+Header file: \texttt{#2}}
+\newcommand{\Data}{\par\vspace{2ex}\noindent\textsc{Adat memberek:}%
+	\par\addvspace{2ex}}
+\newcommand{\Public}{\par\vspace{2ex}\noindent\textsc{Public memberek:}
+	\par\addvspace{2ex}}
+\newcommand{\Private}{\par\vspace{2ex}\noindent\textsc{Private memberek:}
+	\par\addvspace{2ex}}
+\newcommand{\SqMtrxInd}{r(m+1)+s, p(m+1)+q}
+\newcommand{\NSqMtrxInd}{r(l+1)+s, p(m+1)+q}
+
+Az osztályok leírása során felmerülõ képletekben, ha mást nem mondunk, akkor a
+változók a következõket jelentik:
+\[
+\begin{array}{rcl}
+P_{ij} & = & \text{az $(i,j)$ indexû kontrollpont}\\
+k+1 & = & \text{mért pontok száma az $u$ irányba}\\
+l+1 & = & \text{mért pontok száma a $v$ irányba}\\
+n+1 & = & \text{kontrollpontok száma az $u$ irányba}\\
+m+1 & = & \text{kontrollpontok száma a $v$ irányba}\\
+\textit{un} & = & \text{az $u$ irányhoz tartozó bázisfüggvények fokszáma}\\
+\textit{vn} & = & \text{az $v$ irányhoz tartozó bázisfüggvények fokszáma}\\
+(u_i,v_j) & = & \text{a \emph{measured}$(i,j)$ mért ponthoz tartozó
+paraméterértékek}.\\
+\end{array}
+\]
+
+\Class{Approximation}{approximation.hh}
+
+\Data
+
+\begin{Member}
+\item const Matrix<Point>     \&measured;
+\end{Member}
+
+A konstruktor ebben a változóban tárol el egy referenciát a mért adatokat
+tartalmazó mátrixra.
+%
+
+\begin{Member}
+\item Matrix<Par>             parameters;
+\end{Member}
+
+Az aktuális felület paraméterezését tartalmazza, számpárokból álló mátrix, a
+mérete megegyezik a \emph{measured} mátrix méretével. Az $(i,j)$ indexû mért
+ponthoz a \emph{parameters}$(i,j)$ számpár tartozik.
+
+\Public
+
+\begin{Member}
+\item Approximation( const Matrix<Point> \&measured );
+\end{Member}
+
+\begin{Params}
+\item[\emph{measured:}] A mért adatok, amiket közelíteni akarunk.
+\end{Params}
+
+Inicializálja az objektumot. Az osztály az adatokról nem készít másolatot, 
+csak egy hivatkozást tárol a mátrixra a \emph{measured} adat memberben.
+
+
+\begin{Member}
+\item double approximate1( uint uK, uint vK, uint un, \\
+			uint vn, BSplineSurface \&surface,\\
+                        bool default\_parameters = true,\\
+                        const Exclusion *excl = 0 );
+\end{Member}
+\begin{Params}
+\item[\emph{uK:}] A kontrollpontok száma az $u$ irányba.
+\item[\emph{vK:}] A kontrollpontok száma a $v$ irányba.
+\item[\emph{un:}] A bázisfüggvények fokszáma az $u$ irányba.
+\item[\emph{vn:}] A bázisfüggvények fokszáma a $v$ irányba.
+\item[\emph{surface:}] Ebben adja vissza az eredmény felületet.
+\item[\emph{default\_parameters:}] Szükség van-e kezdeti paraméterezés
+meghatározására.
+\item[\emph{excl:}] Az érvényben lévõ kizárás.
+\end{Params}
+
+Elõállít egy B-Spline felületet a legkisebb négyzetek módszerét alkalmazva. Ha
+a \emph{default\_parameters} hamis, akkor a \emph{parameters} adat memberben
+szereplõ paraméterezést használja fel, ha igaz, akkor pedig a \emph{measured}
+mátrix elemeinek indexét leképezi a paramétertérre lineárisan, és a kapott
+paraméterpárt rendeli az indexnek megfelelõ ponthoz. Ha az \emph{excl}
+paramétert nem adjuk meg, akkor az összes mért adatpont részt vesz az
+approximációban. Ez a mûvelet egy túlhatározott lineáris egyenletrendszert 
+megoldva határozza meg a legjobb közelítõ megoldást, a \emph{Householder}
+osztályt felhasználva. A megoldandó egyenletrendszer alapmátrixát a
+\emph{fill\_matrix1} és \emph{fill\_b1} mûveletek számolják ki.
+
+A B-Spline felülethez tartozó knot-vektorok egyenletes eloszlásúak lesznek, a
+két végpontban $\textit{un}+1$ és $\textit{vn}+1$ pontok össze lesznek vonva,
+ezzel az elõálló felületet kihúzzuk a kontrollpont háló szélére. A mûvelet a
+mért adatoktól vett négyzetes eltérések átlagát adja vissza.
+
+\begin{Member}
+\item void fill\_matrix1( Matrix<double> \&A,\\
+                          const Base \&ubase, const Base \&vbase,\\
+			  const Exclusion *excl = 0 ) const ;
+\end{Member}
+\begin{Params}
+\item[\emph{A:}]	A kitöltendõ mátrix.
+\item[\emph{ubase:}] Az $u$ irányhoz tartozó bázisfüggvény.
+\item[\emph{vbase:}] A $v$ irányhoz tartozó bázisfüggvény.
+\item[\emph{excl:}] Az érvényben lévõ kizárás.
+\end{Params}
+
+Az \emph{approximate1} mûvelet használja a lineáris egyenletrendszer
+alapmátrixának feltöltésére ezt a membert. Az \emph{A} mátrix elemei a mûvelet
+lefutása után a következõk lesznek:
+\begin{gather*}
+A_{\SqMtrxInd} = \textit{ubase}(p,u_r) \textit{vbase}(q,v_s), \\
+%
+p \in [0,n],\; q \in [0,m],\; r \in [0,k],\; s \in [0,l].
+\end{gather*}
+
+A mátrix csak azokat az itt megadott sorokat fogja tartalmazni, amelyekhez
+olyan mért adatpont tartozik, amit az \emph{excl} nem zár ki az
+approximációból.
+
+\begin{Member}
+\item void fill\_b1( Matrix<double> \&A, uint index,\\
+                           const Exclusion *excl ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{A:}] A lineáris egyenletrendszer alapmátrixa.
+\item[\emph{index:}] Aktuális koordináta a \emph{measured} mátrixban.
+\item[\emph{excl:}] Az érvényben lévõ kizárás.
+\end{Params}
+
+A mûvelet az \emph{A} mátrix utolsó oszlopát tölti fel az
+\emph{approximation1} mûvelet által megoldandó lineáris egyenletrendszernek
+megfelelõen. Az utolsó oszlopba az eredeti egyenletrendszer jobb oldalát kell
+tenni, ha \emph{Householder transzformációt} szeretnénk alkalmazni. Tehát a
+mûvelet az \emph{A} mátrix utolsó oszlopába a következõ vektort teszi:
+\[
+A_{(n+1)(m+1)} = \begin{bmatrix}
+	\textit{measured}(0,0)[\textit{index}] \\
+	\textit{measured}(0,1)[\textit{index}] \\
+	\vdots \\
+	\textit{measured}(k,l)[\textit{index}] 
+\end{bmatrix}.
+\]
+A vektor nem biztos, hogy az összes itt megadott sort tartalmazza, az
+\emph{excl} paraméternek megfelelõen a kizárt pontokhoz tartozó sorok nem
+kerülnek bele a vektorba. Az \emph{index} azt határozza meg, hogy melyik
+koordinátát tekintsük a 3 dimenziós mért adatpontokból. A kontrollpontok
+meghatározásához három lineáris egyenletrendszert kell megoldani, külön
+egyenletrendszer kell minden koordinátához. A kapott három kontrollpont vektor
+együtt határozza meg a térbeli kontrollpontokat.
+
+
+\begin{Member}
+\item double approximate2( uint uK, uint vK, uint un, \\
+			uint vn, BSplineSurface \&surface,\\
+                        bool default\_parameters = true,\\
+                        const Exclusion *excl = 0 );
+\end{Member}
+\begin{Params}
+\item[\emph{uK:}] A kontrollpontok száma az $u$ irányba.
+\item[\emph{vK:}] A kontrollpontok száma a $v$ irányba.
+\item[\emph{un:}] A bázisfüggvények fokszáma az $u$ irányba.
+\item[\emph{vn:}] A bázisfüggvények fokszáma a $v$ irányba.
+\item[\emph{surface:}] Ebben adja vissza az eredmény felületet.
+\item[\emph{default\_parameters:}] Szükség van-e kezdeti paraméterezés
+meghatározására.
+\item[\emph{excl:}] Az érvényben lévõ kizárás.
+\end{Params}
+
+Elõállít egy B-Spline felületet a legkisebb négyzetek módszerét alkalmazva. A
+paraméterek jelentése megegyezik az \emph{approximate1} mûvelet
+paramétereivel. Ez a mûvelet egy egyértelmûen meghatározott lineáris
+egyenletrendszert megoldva határozza meg a legjobb közelítõ megoldást, a
+\emph{Householder} osztályt felhasználva. A megoldandó egyenletrendszer
+alapmátrixát a \emph{fill\_matrix2} és \emph{fill\_b2} mûveletekkel számolja
+ki.
+
+A knot-vektorok meghatározása ugyanazzal a módszerrel történik, mint az
+\emph{approximate1} mûvelet esetében (egyenletes eloszlás, végpontokban
+összehúzás). A mûvelet a mért adatoktól vett négyzetes eltérések átlagát adja 
+vissza.
+
+\begin{Member}
+\item void fill\_matrix2( Matrix<double> \&A,\\
+			const Matrix<double> \&base\_product,\\
+                        const Base \&ubase, const Base \&vbase,\\
+                        const Exclusion *excl ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{A:}] A lineáris egyenletrendszer alapmátrixa.
+\item[\emph{base\_product:}] Bázisfüggvények szorzatmátrixa.
+\item[\emph{ubase:}] Az $u$ irányhoz tartozó bázisfüggvény.
+\item[\emph{vbase:}] A $v$ irányhoz tartozó bázisfüggvény.
+\item[\emph{excl:}] Az érvényben lévõ kizárás.
+\end{Params}
+
+Az \emph{approximate2} eljárás által megoldott lineáris egyenletrendszer
+alapmátrixát tölti fel. A \emph{base\_product} egy segédmátrix az \emph{A}
+elemeinek a gyorsabb kiszámításához, a bázisfüggvények szorzatait tartalmazza.
+A pontos leírása a \emph{base\_product} függvény member ismertetésénél
+szerepelni fog. Az \emph{A} mátrix elemei a következõk lesznek:
+\begin{gather*}
+A_{\SqMtrxInd} = \sum_{i=0}^k \sum_{j=0}^l \N{p}{un}{u_i} \N{q}{vn}{v_j} 
+		\N{r}{un}{u_i} \N{s}{vn}{v_j},\\
+p,r \in [0,n],\; q,s \in [0,m].
+\end{gather*}
+
+Ha az \emph{excl} kizár egy pontot az approximációból, akkor a neki megfelelõ
+tag nem szerepel az összegben.
+
+\begin{Member}
+\item void fill\_b2( Matrix<double> \&A, \\
+			const Matrix<double> \&bp, uint index,\\
+	                const Base \&ubase, const Base \&vbase,\\
+	                const Exclusion *excl = 0 ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{A:}] A lineáris egyenletrendszer alapmátrixa.
+\item[\emph{index:}] Aktuális koordináta a \emph{measured} mátrixban.
+\item[\emph{excl:}] Az érvényben lévõ kizárás.
+\end{Params}
+
+A mûvelet az \emph{A} mátrix utolsó oszlopát tölti fel az
+\emph{approximation2} mûvelet által megoldandó lineáris egyenletrendszernek
+megfelelõen. Az utolsó oszlopba az eredeti egyenletrendszer jobb oldalát kell
+tenni, ha \emph{Householder transzformációt} szeretnénk alkalmazni. Tehát a
+mûvelet az \emph{A} mátrix utolsó oszlopába a következõ vektort teszi:
+\[
+A_{(n+1)(m+1)} = \begin{bmatrix}
+	\sum_{i=0}^k \sum_{j=0}^l \textit{measured}(i,j)[\textit{index}]\; 
+		\N{0}{un}{u_i} \N{0}{vn}{v_j} \\
+	\sum_{i=0}^k \sum_{j=0}^l \textit{measured}(i,j)[\textit{index}]\; 
+		\N{0}{un}{u_i} \N{1}{vn}{v_j} \\
+	\vdots \\
+	\sum_{i=0}^k \sum_{j=0}^l \textit{measured}(i,j)[\textit{index}]\; 
+		\N{n}{un}{u_i} \N{m}{vn}{v_j} 
+\end{bmatrix}.
+\]
+
+Az \emph{excl} paraméternek megfelelõen nem biztos, hogy a sorokban szereplõ
+összegek az összes tagot tartalmazzák. Az eredményben a \emph{measured}
+vektornak csak az \emph{index}-edik koordinátái szerepelnek.
+
+\begin{Member}
+\item double approximate3( uint uK, uint vK, uint un,\\
+			 uint vn, BSplineSurface \&surface, \\
+			 comp\_fun act\_fun,\\
+			 const Exclusion *excl = 0 );
+\end{Member}
+\begin{Params}
+\item[\emph{uK:}] A kontrollpontok száma az $u$ irányba.
+\item[\emph{vK:}] A kontrollpontok száma a $v$ irányba.
+\item[\emph{un:}] A bázisfüggvények fokszáma az $u$ irányba.
+\item[\emph{vn:}] A bázisfüggvények fokszáma a $v$ irányba.
+\item[\emph{surface:}] Ebben adja vissza az eredmény felületet.
+\item[\emph{act\_fun:}] A paraméterezés javítását végzõ függvény.
+\item[\emph{excl:}] Az érvényben lévõ kizárás.
+\end{Params}
+
+Elõállít egy B-Spline felületet a legkisebb négyzetek módszerét alkalmazva. A
+paraméterek jelentése megegyezik az \emph{approximate1} mûvelet
+paramétereivel. Az \emph{approximate2} eljárást alkalmazva létrehoz egy
+kezdeti felületet, majd minden mért pontra meghívja az \emph{act\_fun} member
+függvényt a paraméterezés javítására. A javított paraméterezéssel újra elvégzi
+az approximációt. A javítást 6 alkalommal ismétli meg, és minden egyes
+alkalommal kiírja az átlagos négyzetes eltéréseket. Az utolsó lépésben
+kialakult átlagos hibanégyzetet adja vissza. Az \emph{act\_fun} függvény
+szignatúrája a következõ:
+
+\begin{Member}
+\item void (Approximation::*)( const BSplineSurface \&, \\
+		uint, uint );
+\end{Member}
+
+
+\begin{Member}
+\item void compute\_length( const BSplineSurface \&surface,\\
+                           uint i, uint j,\\
+			   double \&lu, double \&lv ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{surface:}] A generált B-Spline felület.
+\item[\emph{i,j:}] A javítandó paraméterérték indexe a \emph{parameters}
+mátrixban.
+\item[\emph{lu,lv:}] A felületi ponthoz tartozó paramétervonalak hossza.
+\end{Params}
+
+A függvény a \emph{correct\_parameter} member végrehajtásához szükséges
+paramétervonal hosszakat számolja ki. Az \emph{lu}-ban adja vissza az $u$
+irányhoz tartozó, a \emph{v}-ben a $v$ irányhoz tartozó paramétervonalak
+hosszát.
+
+\begin{Member}
+\item void correct\_parameters( const BSplineSurface \\
+			\&surface, const Exclusion *excl,\\
+                        comp\_fun act\_fun );
+\end{Member}
+\begin{Params}
+\item[\emph{surface:}] A generált B-Spline felület.
+\item[\emph{excl:}] Az érvényben lévõ kizárás.
+\item[\emph{act\_fun:}] A használandó javító függvény.
+\end{Params}
+
+A member az \emph{excl} által kizárt pontokat kivéve minden pontra meghívja a
+paraméterként kapott \emph{act\_fun} javító függvényt.
+
+
+\begin{Member}
+\item void correct\_parameter( const BSplineSurface \\
+			\&surface, uint i, uint j );
+\end{Member}
+\begin{Params}
+\item[\emph{surface:}] A generált B-Spline felület.
+\item[\emph{i,j:}] A javítandó paraméterek indexe.
+\end{Params}
+
+A member a kapott \emph{surface} felülethez tartozó paraméterezést próbálja
+meg javítani az $(i,j)$ indexû mért pontban. Az aktuális paraméterezést a
+\emph{parameters}$(i,j)$ tartalmazza.
+
+A felületet az adott pontban megegyezõnek tekinti a ponthoz tartozó 
+érintõsíkkal, és a paraméterértékeket a mért pont és felületi pont
+érintõsíkra esõ merõleges vetülete alapján módosítja. Képletben:
+\begin{eqnarray*}
+u'_i &=& u_i + \frac{r_u}{\Norma{r_u}} [D_{ij} - r(u_i,v_j)]
+	\frac{\textit{measured.n()}-1}{\textit{lu}}, \\
+v'_j &=& v_j + \frac{r_v}{\Norma{r_v}} [D_{ij} - r(u_i,v_j)]
+	\frac{\textit{measured.m()}-1}{\textit{lv}},
+\end{eqnarray*}
+ahol $(u_i,v_j)$ a régi, $(u'_i,v'_j)$ pedig az új paraméterértékek,
+$D_{ij} =$ \emph{measured}$(i,j)$,
+$r(u_i,v_j) =$ az $(u_i,v_j)$ paraméterekhez tartozó felületi pont,
+\emph{lu} $=$ az $r(u_i,v_j)$-hez tartozó $u$ irányú paramétervonal hossza,
+\emph{lv} $=$ az $r(u_i,v_j)$-hez tartozó $v$ irányú paramétervonal hossza.
+
+\begin{Member}
+\item void correct\_parameter2( const BSplineSurface \\
+			\&surface, uint i, uint j );
+\end{Member}
+\begin{Params}
+\item[\emph{surface:}] A generált B-Spline felület.
+\item[\emph{i,j:}] A javítandó paraméterek indexe.
+\end{Params}
+
+A member a kapott \emph{surface} felülethez tartozó paraméterezést próbálja
+meg javítani az $(i,j)$ indexû mért pontban. Az aktuális paraméterezést a
+\emph{parameters}$(i,j)$ tartalmazza.
+
+A felületet Taylor-sorba fejti az $(u_i,v_j)$ pont körül az elsõ deriváltat 
+tartalmazó tagig, és ez alapján határozza meg az új paraméterértékeket:
+\begin{eqnarray*}
+u'_i &=& u_i + 
+	\frac{\left< r_v^2, [D_{ij}-r(u_i,v_j)]r_u \right> - 
+		\left< r_u r_v, [D_{ij}-r(u_i,v_j)]r_v \right>}
+	{r_u^2 r_v^2 - (r_u r_v)^2}, \\
+v'_j &=& v_j + 
+	\frac{\left< r_u^2, [D_{ij}-r(u_i,v_j)]r_v \right> - 
+		\left< r_u r_v, [D_{ij}-r(u_i,v_j)]r_u \right>}
+	{r_u^2 r_v^2 - (r_u r_v)^2},
+\end{eqnarray*}
+ahol $(u_i,v_j)$ a régi, $(u'_i,v'_j)$ pedig az új paraméterértékek,
+$D_{ij} =$ \emph{measured}$(i,j)$,
+$r(u_i,v_j) =$ az $(u_i,v_j)$ paraméterekhez tartozó felületi pont.
+
+
+\begin{Member}
+\item void correct\_parameter3( const BSplineSurface \\
+			\&surface, uint i, uint j );
+\end{Member}
+\begin{Params}
+\item[\emph{surface:}] A generált B-Spline felület.
+\item[\emph{i,j:}] A javítandó paraméterek indexe.
+\end{Params}
+
+A member a kapott \emph{surface} felülethez tartozó paraméterezést próbálja
+meg javítani az $(i,j)$ indexû mért pontban. Az aktuális paraméterezést a
+\emph{parameters}$(i,j)$ tartalmazza.
+
+A hibavektor deriváltjának zérushelyét próbálja meghatározni oly módon, hogy
+kiszámolja a hibavektor deriváltjára a \emph{Newton iteráció} egy lépését:
+\begin{eqnarray*}
+u'_i &=& u_i - 
+	\frac{ [D_{ij}-r(u_i,v_j)] r_u }
+	{[D_{ij}-r(u_i,v_j)] r_{uu} - r_u^2}, \\
+v'_j &=& v_j - 
+	\frac{ [D_{ij}-r(u_i,v_j)] r_v }
+	{[D_{ij}-r(u_i,v_j)] r_{vv} - r_v^2}, \\
+\end{eqnarray*}
+ahol $(u_i,v_j)$ a régi, $(u'_i,v'_j)$ pedig az új paraméterértékek,
+$D_{ij} =$ \emph{measured}$(i,j)$,
+$r(u_i,v_j) =$ az $(u_i,v_j)$ paraméterekhez tartozó felületi pont.
+
+\begin{Member}
+\item double approximate4( uint uK, uint vK, uint un, \\
+			uint vn, BSplineSurface \&surface,\\
+                        Functional \&functional, double max\_err,\\
+                        bool default\_parameters, \\
+			const Exclusion *excl );
+\end{Member}
+\begin{Params}
+\item[\emph{uK:}] A kontrollpontok száma az $u$ irányba.
+\item[\emph{vK:}] A kontrollpontok száma a $v$ irányba.
+\item[\emph{un:}] A bázisfüggvények fokszáma az $u$ irányba.
+\item[\emph{vn:}] A bázisfüggvények fokszáma a $v$ irányba.
+\item[\emph{surface:}] Ebben adja vissza az eredmény felületet.
+\item[\emph{functional:}] A felület minõségét jellemzõ funkcionál.
+\item[\emph{max\_err:}] Megengedett maximális átlagos eltérés négyzet.
+\item[\emph{default\_parameters:}] Szükség van-e kezdeti paraméterezés
+meghatározására.
+\item[\emph{excl:}] Az érvényben lévõ kizárás.
+\end{Params}
+
+Elõállít egy B-Spline felületet a legkisebb négyzetek módszerét alkalmazva, a
+paraméterként kapott funkcionált is felhasználva a felület minõségének
+javítására. A paraméterek jelentése megegyezik az \emph{approximate1} mûvelet
+paramétereivel. A \emph{max\_err} paraméter azt határozza meg, hogy mekkora az
+a maximális átlagos eltérés négyzet, amennyit megengedünk. Az eljárás a
+következõ kifejezést minimalizálja:
+\[
+\mu \sum_{i,j} \Norma{D_{ij} - \textit{surface}(u_i,v_j)} +
+	(1-\mu) \textit{functional} \longrightarrow \text{minimum}.
+\]
+A cél a $\mu$ paraméterérték meghatározása oly módon, hogy a kapott átlagos
+hibanégyzet a megengedett maximális átlagos hibanégyzeten belül legyen.
+Ez a $\mu$ a $[0,1]$ intervallumon belül lesz, az eljárás bináris kereséssel
+határozza meg a megfelelõ értéket a $[0,1]$ intervallumon.
+
+\begin{Member}
+\item double solve\_one\_step( uint step, BSplineSurface \\
+			\&surface,
+			 const Matrix<double> base\_product,\\
+			 const Functional \&functional, double u,\\
+			 const Exclusion *excl );
+\end{Member}
+\begin{Params}
+\item[\emph{step:}] Hanyadik approximációs lépés.
+\item[\emph{surface:}] Ebben adja vissza a generált felületet.
+\item[\emph{base\_product:}] Segéd mátrix a számításhoz.
+\item[\emph{functional:}] A felület minõségét jellemzõ funkcionál.
+\item[\emph{u:}] Az eltérést minimalizáló tag együtthatója.
+\item[\emph{excl:}] Az érvényben lévõ kizárás.
+\end{Params}
+
+Egy approximációs lépést végez el a megadott \emph{u} súllyal és
+\emph{functional} funkcionállal. Az eredményül kapott B-Spline felületet a 
+\emph{surface} változóban adja vissza. A standard output-ra kiírja az átlagos
+négyzetes eltérést és a használt $1-u$ súlyt. A lineáris egyenletrendszer
+megoldásához a \emph{Householder} osztályt használja, az egyenletrendszer
+alapmátrixát a \emph{fill\_matrix4} és \emph{fill\_b4} member függvények
+segítségével tölti fel.
+
+A visszatérési érték a négyzetes eltérések átlaga.
+
+
+\begin{Member}
+\item void fill\_matrix4( Matrix<double> \&A,\\
+                         const Matrix<double> \&base\_product,\\
+                         const Functional \&functional, double u,\\
+                         const Base \&ubase, const Base \&vbase,\\
+                         const Exclusion *excl ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{A:}] A feltöltendõ mátrix.
+\item[\emph{base\_product:}] Segéd mátrix a számításhoz.
+\item[\emph{functional:}] A felület minõségét jellemzõ funkcionál.
+\item[\emph{u:}] Az eltérést minimalizáló tag együtthatója.
+\item[\emph{ubase:}] Az $u$ irányhoz tartozó bázisfüggvény.
+\item[\emph{vbase:}] A $v$ irányhoz tartozó bázisfüggvény.
+\item[\emph{excl:}] Az érvényben lévõ kizárás.
+\end{Params}
+A \emph{solve\_one\_step} mûveletben szereplõ lineáris egyenletrendszer
+alapmátrixát tölti fel. A mátrix a következõ lesz:
+\begin{gather*}
+A_{\SqMtrxInd} = u \sum_{i=0}^k \sum_{j=0}^l \N{p}{un}{u_i} \N{q}{vn}{v_j} 
+		\N{r}{un}{u_i} \N{s}{vn}{v_j} + \\
+	+ (1-u) \textit{functional.derivate}(r, s, p, q),\;
+p,r\in[0,n],\; q,s\in[0,m].
+\end{gather*}
+Az összegbõl az \emph{excl} paraméternek megfelelõ tagok hiányoznak. A
+\emph{functional} objektum \emph{derivate} mûvelete egy funkcionál
+deriváltjának számolja ki egy tagját. A \emph{derivate} mûvelet paramétereinek
+a leírása a \emph{Functional} osztálynál szerepel.
+
+\begin{Member}
+\item void fill\_b4( Matrix<double> \&A, \\
+			const Matrix<double> \&bp, uint index, \\
+			double u, const Base \&ubase, const Base \\
+			\&vbase, const Exclusion *excl ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{A:}] A lineáris egyenletrendszer alapmátrixa.
+\item[\emph{bp:}] Segédmátrix, a bázisfüggvények szorzatait tartalmazza.
+\item[\emph{index:}] Aktuális koordináta a \emph{measured} mátrixban.
+\item[\emph{u:}] Az eltérést minimalizáló tag együtthatója.
+\item[\emph{ubase:}] Az $u$ irányhoz tartozó bázisfüggvény.
+\item[\emph{vbase:}] A $v$ irányhoz tartozó bázisfüggvény.
+\item[\emph{excl:}] Az érvényben lévõ kizárás.
+\end{Params}
+
+A mûvelet az \emph{A} mátrix utolsó oszlopát tölti fel a
+\emph{solve\_one\_step} mûvelet által megoldandó lineáris egyenletrendszernek
+megfelelõen. Az utolsó oszlopba az eredeti egyenletrendszer jobb oldalát kell
+tenni, ha \emph{Householder transzformációt} szeretnénk alkalmazni. Tehát a
+mûvelet az \emph{A} mátrix utolsó oszlopába a következõ vektort teszi:
+\[
+A_{(n+1)(m+1)} = u \begin{bmatrix}
+	\sum_{i=0}^k \sum_{j=0}^l \textit{measured}(i,j)[\textit{index}]\; 
+		\N{0}{un}{u_i} \N{0}{vn}{v_j} \\
+	\sum_{i=0}^k \sum_{j=0}^l \textit{measured}(i,j)[\textit{index}]\; 
+		\N{0}{un}{u_i} \N{1}{vn}{v_j} \\
+	\vdots \\
+	\sum_{i=0}^k \sum_{j=0}^l \textit{measured}(i,j)[\textit{index}]\; 
+		\N{n}{un}{u_i} \N{m}{vn}{v_j} 
+\end{bmatrix}.
+\]
+Az \emph{excl} paraméternek megfelelõen nem biztos, hogy a sorokban szereplõ
+összegek az összes tagot tartalmazzák. Az eredményben a \emph{measured} 
+mátrixban szereplõ térbeli pontoknak csak az \emph{index}-edik koordinátái
+szerepelnek.
+
+\begin{Member}
+\item void init\_parameters( uint un, uint vn );
+\end{Member}
+\begin{Params}
+\item[\emph{un:}] A mért adatokat tartalmazó mátrix sorainak száma.
+\item[\emph{vn:}] A mért adatokat tartalmazó mátrix oszlopainak száma.
+\end{Params}
+
+A mûvelet a \emph{parameters} adat membert tölti fel a kezdeti
+paraméterértékekkel. A mért adatokat tartalmazó mátrix elemeihez a
+paraméterezést úgy határozza meg, hogy az elemek indexét lineárisan leképezi a
+paramétertérre. A paramétertér azonban a
+$[0, \textit{measured.n()}-1] \times [0,\textit{measured.m()}-1]$ téglalap,
+így ez a leképezés a következõt jelenti: \emph{parameters}$(i,j)$ = $(i,j)$.
+
+\begin{Member}
+\item void fill\_knotvector( KnotVector \&kv, uint n,\\
+                                    double min, double max ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{kv:}] A feltöltendõ knot-vektor.
+\item[\emph{n:}] A knot-vektorhoz tartozó bázisfüggvény fokszáma.
+\item[\emph{min:}] A knot-vektorban szereplõ elsõ csomópont értéke.
+\item[\emph{max:}] A knot-vektorban szereplõ utolsó csomópont értéke.
+\end{Params}
+
+A paraméterként kapott \emph{kv} knot-vektort tölti fel. A knot-vektor elsõ
+csomópontja a \emph{min}, az utolsó csomópontja a \emph{max} lesz, és $n+1$
+csomópont össze lesz vonva a knot-vektor elején és a végén. A belsõ pontok
+közötti távolság egyenlõ lesz, az eredmény egy egyenletes eloszlású
+knot-vektor.
+
+\begin{Member}
+\item void fill\_controls( Matrix<Point> \&controls,\\
+				Matrix<double> \&x,\\
+                                  uint uK, uint vK, uint index ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{controls:}] Ebben a mátrixban adja vissza a kontrollpontokat.
+\item[\emph{x:}] A kontrollpontokat tartalmazó vektor.
+\item[\emph{uK:}] A kontrollpontok száma az $u$ irányba.
+\item[\emph{vK:}] A kontrollpontok száma a $v$ irányba.
+\item[\emph{index:}] Az \emph{x} vektor a kontrollpontokból csak az
+\emph{index}-edik koordinátát tartalmazza.
+\end{Params}
+
+A \emph{controls} mátrixba a megfelelõ pozícióba és koordináta helyre
+átmásolja az \emph{x} vektorban kapott kontrollpont koordinátákat. Az \emph{x}
+vektorban a kontrollpontok folytonosan helyezkednek el. A \emph{controls}
+mátrix elemeinek csak az \emph{index}-edik koordinátáját változtatja. A
+\emph{controls} mátrix a következõ lesz (csak az \emph{index}-edik koordinátát
+adjuk meg):
+\[
+\textit{controls}[\textit{index}] = \begin{bmatrix}
+	\textit{x}[0], & \dots & \textit{x}[\textit{vK}-1] \\
+	\vdots & \ddots & \vdots \\
+	\textit{x}[(\textit{uK}-1) \textit{vK}], & \dots &
+		\textit{x}[(\textit{uK}-1) \textit{vK} + \textit{vK}-1]
+\end{bmatrix}.
+\]
+
+\begin{Member}
+\item double count\_diff( const BSplineSurface \&surface,\\
+                                 const Exclusion *excl ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{surface:}] Egy érvényes B-Spline felület.
+\item[\emph{excl:}] Érvényben lévõ kizárás.
+\end{Params}
+
+A mért adatok és a nekik megfelelõ felületi pontok közötti négyzetes eltérések
+átlagát adja vissza. Az \emph{excl} paraméter által meghatározott pontokat
+kihagyja a számításból amikor végigmegy a felületen.
+
+
+\begin{Member}
+\item double count\_matrix\_sum( const Matrix<double> \&bp,\\
+                            const Base \&ubase, const Base \&vbase,\\
+                            uint r, uint s, uint p, uint q,\\
+                            const Exclusion *excl ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{bp:}] Segédmátrix, a bázisfüggvények szorzatát tartalmazza.
+\item[\emph{ubase:}] Az $u$ irányhoz tartozó bázisfüggvény.
+\item[\emph{vbase:}] A $v$ irányhoz tartozó bázisfüggvény.
+\item[\emph{i,j:}] Az alapmátrix aktuális sorához tartozó kontrollpont indexei.
+\item[\emph{m,n:}] Az alapmátrix aktuális oszlopához tartozó kontrollpont
+indexei.
+\item[\emph{excl:}] Az érvényben lévõ kizárás.
+\end{Params}
+
+Az \emph{fill\_matrix2} és \emph{fill\_matrix4} mûveletek használják a
+feladathoz tartozó lineáris egyenletrendszer alapmátrixának meghatározásához.
+Ez a mûvelet az alapmátrix egy elemét számolja ki. A paraméterként kapott
+\emph{bp} mátrix tartalmát a \emph{base\_product} member tárgyalásánál
+ismertetjük. A függvény a következõ értéket adja vissza:
+\[
+\sum_{i=0}^k \sum_{j=0}^l \N{p}{un}{u_i} \N{q}{vn}{v_j} 
+	\N{r}{un}{u_i} \N{s}{vn}{v_j},\;
+p,r \in [0,n],\; q,s \in [0,m].
+\]
+Az összegbõl elmaradnak az \emph{excl} által meghatározott pontok.
+
+\begin{Member}
+\item void fill\_base\_product( Matrix<double> \&A, \\
+			const Base \&ubase, const Base \&vbase ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{A:}] A feltöltendõ segéd mátrix.
+\item[\emph{ubase:}] Az $u$ irányhoz tartozó bázisfüggvény.
+\item[\emph{vbase:}] A $v$ irányhoz tartozó bázisfüggvény.
+\end{Params}
+
+A member a \emph{count\_matrix\_sum} által használt \emph{base\_product}
+mátrixot tölti fel. Az eredményt az \emph{A} mátrixban adja vissza. Az
+\emph{A} mátrix tartalma a következõ lesz:
+\begin{gather*}
+A_{\SqMtrxInd} = \N{p}{un}{u_r} \N{q}{vn}{v_s}, \\
+p,r \in [0,n],\; q,s \in [0,m].
+\end{gather*}
+
+\begin{Member}
+\item bool solve\_problem( const Matrix<double> \&A,\\
+                                  Matrix<double> \&x ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{A:}] A megoldandó egyenletrendszer alapmátrixa és jobboldala.
+\item[\emph{x:}] Keresett vektor.
+\end{Params}
+
+Az algoritmus a következõ lineáris egyenletrendszert oldja meg a
+\emph{Householder} osztályt felhasználva:
+\[
+A \begin{bmatrix} x \\ -1 \end{bmatrix} = \underline{0}.
+\]
+
+A member a paraméterként kapott \emph{A} mátrixot nem változtatja meg, arról
+egy lokális másolatot készít mielõtt meghívja a \emph{Householder} objektum
+megfelelõ mûveletét.
+
+
+\Class{Householder}{householder.hh}
+
+\Data
+
+\begin{Member}
+\item double  E;
+\end{Member}
+
+Azt a hibát tartalmazza, amin belül nullának tekint az osztály egy számot.
+
+\Public
+
+\begin{Member}
+\item HouseHolder( double E = 1e-16 );
+\end{Member}
+\begin{Params}
+\item[\emph{E:}] Hibakorlát.
+\end{Params}
+
+Inicializálja az objektumot.
+
+
+\begin{Member}
+\item void    solve( Matrix<double> \&A, Matrix<double> \&x );
+\end{Member}
+\begin{Params}
+\item[\emph{A:}] A megoldandó lineáris egyenletrendszer együtthatói.
+\item[\emph{x:}] Ebben adja vissza az eredményt.
+\end{Params}
+
+Megoldja a paraméterekkel adott lineáris egyenletrendszert. Az \emph{A}
+mátrixot a megoldás során elrontja. A megoldott egyenlet:
+\[
+A \begin{bmatrix} x \\ -1 \end{bmatrix} = \underline{0}.
+\]
+
+
+\Class{SurfGen}{surfgen.hh}
+
+\Data
+
+\begin{Member}
+\item uint    un, vn;
+\end{Member}
+
+A felületbõl a mintavételezés során az $u$ irányban \emph{un}, a $v$ irányban
+\emph{vn} helyen vesz mintát. Összesen $\textit{un}\textit{vn}$ pontot fog
+kiírni a lemezre.
+
+
+\Public
+
+\begin{Member}
+\item SurfGen();
+\end{Member}
+
+Inicializálja az objektumot, az \emph{un} és a \emph{vn} 50 lesz
+alapértelmezés szerint. Inicializálja a véletlenszám generátort is.
+
+
+\begin{Member}
+\item void    set\_param( uint un, uint vn );
+\end{Member}
+\begin{Params}
+\item[\emph{un, vn:}] Az új mintavételezési gyakoriság.
+\end{Params}
+
+Az \emph{un} és \emph{vn} védett adat membereket állítja be a kapott
+paraméterértékekre.
+
+\begin{Member}
+\item bool    write\_surface( const char *name,\\
+			 const BSplineSurface \&s,\\
+                         const Exclusion *excl = 0 );
+\end{Member}
+\begin{Params}
+\item[\emph{name:}] Az állományok neve, amelyeket létre kell hozni.
+\item[\emph{s:}] A bemeneti B-Spline felület.
+\item[\emph{excl:}] Az érvényben lévõ kizárás.
+\end{Params}
+
+A mûvelet a paraméterként kapott \emph{s} felületrõl mintát vesz az \emph{un}
+és \emph{vn} adat membereknek megfelelõ gyakorisággal. A paraméter vonalakon
+halad végig, a befutott paramétervonalak a paramétertérben egyenlõ távolságra
+vannak egymástól, az \emph{excl} által meghatározott pontokat kihagyja. Három 
+állomány jön létre a megadott névvel, de különbözõ kiterjesztéssel:
+\begin{enumerate}
+\item Paramétervonalakat tartalmazó állomány, ennek a kiterjesztése
+\texttt{.par}.
+\item Az egész felületet tartalmazó állomány, minden ponthoz hozzá lesz
+rendelve a hozzá tartozó Minkowski-görbület. A kiterjesztés \texttt{.surf}.
+\item Az egész felületet tartalmazó állomány, minden ponthoz hozzá lesz
+rendelve a hozzá tartozó Gauss-görbület. A kiterjesztés \texttt{.gauss}.
+\end{enumerate}
+
+A létrehozott állományok a \emph{vtk} függvényeivel olvashatók. A felületet a
+\emph{showpoly} program képes megjeleníteni.
+
+
+\begin{Member}
+\item bool write\_real( const char *name, double maxerr,\\
+                           const BSplineSurface \&s );
+\end{Member}
+\begin{Params}
+\item[\emph{name:}] Az állomány neve, amelyet létre kell hozni.
+\item[\emph{maxerr:}] A véletlen hibavektorok legnagyobb megengedett mérete.
+\item[\emph{s:}] A bemeneti B-Spline felület.
+\end{Params}
+
+Ez a member a \emph{real2spl} program bemeneti formátumának megfelelõ
+állományt képes generálni. Az \emph{un} és \emph{vn} adat membereknek
+megfelelõen végigmegy a felületen, mintát vesz, a kapott térbeli pontokat egy
+véletlen méretû és irányú vektorral eltolja, majd elteszi egy mátrixba. A
+mátrixban az elemek a mintavételük sorrendjében szerepelnek. A mátrix mérete
+$\textit{un} \times \textit{vn}$. Az eltoláshoz használt vektorok
+abszolut értéke kisebb a \emph{maxerr} paraméter értékénél. A létrehozott
+állomány kiterjesztése \texttt{.real}.
+
+
+\begin{Member}
+\item bool write\_controls( const char *name,\\
+			const BSplineSurface \&s);
+\end{Member}
+\begin{Params}
+\item[\emph{name:}] Az állomány neve, amelyet létre kell hozni.
+\item[\emph{s:}] A bemeneti B-Spline felület.
+\end{Params}
+
+Az adott \emph{s} felülethez tartozó kontrollpontokat írja ki a \emph{name}
+nevû állományba, a kiterjesztése \texttt{.cp} lesz.
+
+\Private
+
+\begin{Member}
+\item bool make\_points( vtkPolyData *spolygon, \\
+			vtkPolyData *ppolygon,\\
+                        const BSplineSurface \&s );
+\end{Member}
+\begin{Params}
+\item[\emph{spolygon:}] A felület pontjait tartalmazó poligon.
+\item[\emph{spolygon:}] A paramétervonalak pontjait tartalmazó poligon.
+\end{Params}
+
+A \emph{write\_surface} member használja ezt a függvényt, a felületrõl mintát
+vesz és a kapott pontokat hozzárendeli az \emph{spolygon} és \emph{ppolygon}
+paraméterekhez. Az egyik a felületet, a másik a paramétervonalakat fogja
+tartalmazni. A visszatérési érték akkor igaz, ha hiba történt a futás közben.
+
+
+\begin{Member}
+\item bool make\_scalars( vtkPolyData *spolygon, \\
+		const BSplineSurface \&s, int curvature );
+\end{Member}
+\begin{Params}
+\item[\emph{spolygon:}] A poligon, aminek a pontjaihoz értékeket kell rendelni.
+\item[\emph{s:}] A bemeneti B-Spline felület.
+\item[\emph{curvature:}] Minkowski- vagy Gauss-görbületet kell számolni.
+\end{Params}
+
+A paraméterként kapott poligonban szereplõ pontokhoz hozzárendeli a
+görbületeket. Ha a \emph{curvature} paraméter 0, akkor Minkowski-görbületet,
+ha 1, akkor Gauss-görbületet számol. Igazat ad vissza akkor, ha hiba történt a
+számítás közben.
+
+
+\begin{Member}
+\item void make\_cells( vtkPolyData *spolygon, \\
+		vtkPolyData *ppolygon, const Exclusion *excl = 0 );
+\end{Member}
+\begin{Params}
+\item[\emph{spolygon:}] A felület pontjait tartalmazó poligon.
+\item[\emph{ppolugon:}] A paramétervonalak pontjait tartalmazó poligon.
+\item[\emph{excl:}] Az érvényben lévõ kizárás.
+\end{Params}
+
+Az \emph{spolygon}-hoz hozzárendel háromszög sávokat, amik a felületet fogják
+reprezentálni. A \emph{ppolygon}-ban szereplõ pontokhoz vonalakat rendel, ezek
+lesznek a paramétervonalak. Figyelembe veszi az érvényes kizárást.
+
+
+\begin{Member}
+\item Point   mess( const Point \&source, double maxerr );
+\end{Member}
+\begin{Params}
+\item[\emph{source:}] Bemeneti vektor.
+\item[\emph{maxerr:}] Hibakorlát.
+\end{Params}
+
+A \emph{source} paraméterben adott vektorhoz hozzáad egy véletlenszerûen
+generált vektort. A hozzáadott vektor abszolut értéke kisebb, mint
+\emph{maxerr}, iránya és mérete is véletlenszerû.
+
+\Class{Vector}{vector.hh}
+
+\Data
+
+\begin{Member}
+\item ELEM    x, y, z;
+\end{Member}
+
+A vektor belsõ reprezentációja a három koordinátának megfelelõ érték
+eltárolásával történik. Az \emph{ELEM} típus a template osztály paramétere.
+
+\Public
+
+\begin{Member}
+\item ostream \&operator <{<} <>( ostream \&s1, const Vector<ELEM> \&a );
+\item istream \&operator >{>} <>( istream \&s2, Vector<ELEM> \&a );
+\item bool operator <\;{<}>( const Vector<ELEM> \&a, \\
+	const Vector<ELEM> \&b );
+\item bool operator == <>( const Vector<ELEM> \&a, \\
+	const Vector<ELEM> \&b );
+\item Vector<ELEM> operator + <>( const Vector<ELEM> \&a, \\
+	const Vector<ELEM> \&b );
+\item Vector<ELEM> operator + <>( const Vector<ELEM> \&a );
+\item Vector<ELEM> operator - <>( const Vector<ELEM> \&a, \\
+	const Vector<ELEM> \&b );
+\item Vector<ELEM> operator - <>( const Vector<ELEM> \&a );
+\item ELEM operator * <>( const Vector<ELEM> \&a, \\
+	const Vector<ELEM> \&b );
+\item Vector<ELEM> operator * <>( const ELEM \&a, \\
+	const Vector<ELEM> \&b );
+\item Vector<ELEM> operator / <>( const Vector<ELEM> \&a, \\
+	const ELEM \&b );
+\item Vector<ELEM> vector\_mul<>( const Vector<ELEM> \&a, \\
+	const Vector<ELEM> \&b );
+\item Vector \&operator += ( const Vector \&b );
+\item Vector  \&operator -= ( const Vector \&b );
+\end{Member}
+\begin{Params}
+\item[\emph{a,b:}] A mûveletek bemeneti vektorai.
+\item[\emph{s1:}] Kimeneti \emph{stream}.
+\item[\emph{s2:}] Bemeneti \emph{stream}.
+\end{Params}
+
+Mindegyik függvény a nevének megfelelõ mûveletet végzi el a vektoron vagy
+vektorokon.
+
+\begin{Member}
+\item  Vector();
+\item  Vector( int null );
+\item  Vector( const ELEM \&x, const ELEM \&y, const ELEM \&z );
+\end{Member}
+\begin{Params}
+\item[\emph{null:}] Csak a 0 szám lehet.
+\item[\emph{x,y,z:}] A hátom koordináta érték.
+\end{Params}
+
+Ezek a mûveletek inicializálják a vektort. Az elsõ mûvelet semmilyen értéket
+nem tesz a vektorba. A második mûvelet paramétere csak a 0 lehet, és a null
+vektor lesz az incializálás eredménye. A harmadik mûvelet a megadott értékeket
+teszi a megfelelõ adat memberekbe.
+
+
+\Class{Set}{set.hh}
+
+\Data
+
+\begin{Member}
+\item uchar   *data;
+\end{Member}
+
+A halmaz belsõ reprezentációja. A halmaznak egy elõjel nélküli karakterekbõl
+álló tömb felel meg, amelynek a mérete akkora, hogy a teljes halmaz még éppen
+belefér. Ha a halmazba betehetõ elemeket nullával kezdve megsorszámozzuk,
+akkor neki a \emph{data} tömbben két index felel meg. Az egyik azt adja meg,
+hogy hanyadik tömbelemben szerepel a neki megfelelõ bit, ez az \emph{index div
+karakter méret} mûvelettel kapható meg. A másik azt adja meg, hogy a
+karakteren belül jobbról hanyadik bit felel meg az elemnek. Ezt az \emph{index
+mod karakter méret} adja meg. Ha az \emph{index}-edik elemnek megfelelõ bit a
+\emph{data} memberben 1, akkor és csak akkor tekinti az elemet a halmazhoz
+tartozónak.
+
+\begin{Member}
+\item int     min, max;
+\end{Member}
+
+A \emph{min} a legkisebb, a \emph{max} pedig a legnagyobb elemet jelenti, amit
+a halmazban eltárolhatunk.
+
+
+\Public
+
+\begin{Member}
+\item class iterator;
+\end{Member}
+
+A halmaz rendelkezik a \emph{Standard Template Library}-ben megszokott
+\emph{iterator} osztállyal.
+
+
+\begin{Member}
+\item ostream \&operator <{<} ( ostream \&out, \\
+	const Set \&set );
+\item istream \&operator >{>} ( istream \&in, Set \&set );
+\end{Member}
+\begin{Params}
+\item[\emph{out:}] Kimeneti \emph{stream}.
+\item[\emph{in:}] Bemeneti \emph{stream}.
+\item[\emph{set:}] A használt halmaz objektum.
+\end{Params}
+
+A mûveletek a megadott \emph{stream}-re írják ki, illetve olvassák be a halmaz
+objektumot.
+
+
+\begin{Member}
+\item Set( int min = 0, int max = 0 );
+\item Set( const Set \&set );
+\end{Member}
+\begin{Params}
+\item[\emph{min:}] A halmazba betehetõ legkisebb elem.
+\item[\emph{max:}] A halmazba betehetõ legnagyobb elem.
+\item[\emph{set:}] Egy másik halmaz.
+\end{Params}
+
+Az elsõ konstruktor egy üres halmazt hoz létre, amelyik a $[\textit{min},
+\textit{max}]$ intervallumban szereplõ elemek tárolására képes.
+
+A második konstruktor a paraméterként kapott \emph{set} halmazt másolja le
+önmagára.
+
+\begin{Member}
+\item virtual Set();
+\end{Member}
+
+A halmaz destruktora, felszabadítja a \emph{data} számára lefoglalt
+memóriaterületet.
+
+
+\begin{Member}
+\item iterator begin();
+\item iterator end();
+\item const iterator begin() const;
+\item const iterator end() const;
+\end{Member}
+
+A halmaz elejére illetve a halmaz végére mutató \emph{iterator} objektumokat
+adnak vissza.
+
+
+\begin{Member}
+\item Set \&operator = ( const Set \&set );
+\end{Member}
+\begin{Params}
+\item[\emph{set:}] A lemásolandó halmaz.
+\end{Params}
+
+A mûvelet lefutása után a paraméterként kapott \emph{set} halmaz és az
+aktuális objektum ugyanazokat az elemeket fogják tartalmazni, és az ábrázolható
+tartományuk is meg fog egyezni.
+
+
+\begin{Member}
+\item void resize( int min, int max );
+\end{Member}
+\begin{Params}
+\item[\emph{min:}] A halmazba betehetõ legkisebb elem.
+\item[\emph{max:}] A halmazba betehetõ legnagyobb elem.
+\end{Params}
+
+Megváltoztatja a halmazba tehetõ elemek tartományát. A mûvelet eredménye egy
+üres halmaz lesz.
+
+
+\begin{Member}
+\item bool in( int elem ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{elem:}] A keresendõ elem.
+\end{Params}
+
+Igazat ad vissza, ha a megadott \emph{elem} szerepel a halmazban, hamisat
+egyébként.
+
+
+\begin{Member}
+\item Set \&put( int elem );
+\end{Member}
+\begin{Params}
+\item[\emph{elem:}] A halmazba betett új elem.
+\end{Params}
+
+A halmazba beteszi a paraméterként kapott \emph{elem}-et.
+
+
+\begin{Member}
+\item Set \&get( int elem );
+\end{Member}
+\begin{Params}
+\item[\emph{elem:}] A halmazból kivett elem.
+\end{Params}
+
+A halmazból kiveszi a megadott elemet, ha nem volt benne, akkor nem történik
+változás.
+
+
+\begin{Member}
+\item Set \&empty();
+\end{Member}
+
+Kiüríti a halmazt.
+
+\begin{Member}
+\item bool is\_empty() const;
+\end{Member}
+
+Visszaadja, hogy a halmaz üres-e.
+
+\begin{Member}
+\item uint size() const;
+\end{Member}
+
+Visszaadja, hogy hány elem van a halmazban.
+
+\Private
+
+\begin{Member}
+\item void index( int elem, uint \&i, uint \&j ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{elem:}] A lekérdezett elem.
+\item[\emph{i,j:}] A lekérdezett elem indexeit ezekben adja vissza.
+\end{Params}
+
+Az \emph{i} és \emph{j} változókban visszaadja az \emph{elem} \emph{data}
+memberbeli indexét.
+
+\Class{Base}{bspline.hh}
+
+\Data
+
+\begin{Member}
+\item typedef Array<double>	KnotVector;
+\item typedef	Vector<double>	Point;
+\item typedef	Array<Point>	Points;
+\end{Member}
+
+Publikus típusok a felületek kezeléséhez.
+
+\begin{Member}
+\item typedef	Map<double,uint> Multis;
+\end{Member}
+
+Ez a típus a knot-vektorban lévõ multiplicitások kezeléséhez
+hasznáható. Tartalmazza a knot-vektorban szereplõ összes csomópontot, és azt,
+hogy az adott csomópont hányszor szerepel a knot-vektorban.
+
+\begin{Member}
+\item KnotVector	kv;
+\end{Member}
+
+A bázisfüggvényekhez tartozó knot-vektort tartalmazza. Egy \emph{Base} osztály
+nem csak egy bázisfüggvényt, hanem egy knot-vektorhoz tartozó bázisfüggvény
+halmazt képes kezelni.
+
+\begin{Member}
+\item Multis		m;
+\end{Member}
+
+A \emph{kv} knot-vektorban lévõ multiplicitások. A bázisfüggvény
+deriválhatóságának meghatározásához van szükség a multiplicitásra.
+
+\begin{Member}
+\item uint		n;
+\end{Member}
+
+A bázisfüggvény fokszáma.
+
+\Public
+
+\begin{Member}
+\item ostream \&operator <{<} ( ostream \&o, const Base \&b );
+\item istream \&operator >{>} ( istream \&i, Base \&b );
+\end{Member}
+\begin{Params}
+\item[\emph{o:}] Kimeneti \emph{stream}.
+\item[\emph{i:}] Bemeneti \emph{stream}.
+\item[\emph{b:}] A használt \emph{Base} objektum.
+\end{Params}
+
+Egy \emph{Base} osztálybeli objektumot írnak ki, illetve olvasnak be egy
+\emph{stream}-rõl.
+
+\begin{Member}
+\item Base();
+\item Base( uint n, const KnotVector \&kv );
+\item Base( uint n, uint k, double t0 = 0.0, double t1 = 1.0 );
+\end{Member}
+\begin{Params}
+\item[\emph{n:}] A bázisfüggvény fokszáma.
+\item[\emph{kv:}] A bázisfüggvényekhez tartozó knot-vektor.
+\item[\emph{k:}] A knot-vektorban szereplõ csomópontok száma.
+\item[\emph{t0:}] Az elsõ csomópont.
+\item[\emph{t1:}] Az utolsó csomópont.
+\end{Params}
+
+Konstruktorok, inicializálják az objektumot. Az elsõ konstruktor nem hoz létre
+használható bázisfüggvényt, a paramétereit nem definiálja. A második
+konstruktor egy \emph{n}-ed fokú bázisfüggvényt hoz létre, a hozzá tartozó
+knot-vektor \emph{kv}. A harmadik konstruktor egy \emph{n}-ed fokú
+bázisfüggvényt hoz létre, a hozzá tartozó knot-vektor \emph{k} csomópontot fog
+tartalmazni és egyenletes eloszlású lesz a $[t0,t1]$ intervallumon.
+
+\begin{Member}
+\item double	operator () ( uint i, double t ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{i:}] A bázisfüggvény indexe.
+\item[\emph{t:}] A bázisfüggvény paramétere.
+\end{Params}
+
+Kiértékeli az \emph{i.} bázisfüggvényt a \emph{t} helyen, és a helyettesítési
+értéket adja vissza. A paramétereknek a következõ feltételeket kell
+kielégíteniük: $0 \leq i \leq $ knot-vektor mérete $- 1 - (n+1)$, ahol $n$ a
+bázisfüggvény fokszáma, $t_0 \leq t \leq t_1$, ahol $t_0$ és $t_1$ a
+knot-vektorhoz tartozó legkisebb és legnagyobb csomópont. A következõ rekurzív
+képletet használja a számításhoz:
+\[
+\N{i}{n}{t} = \frac{t-t_i}{t_{i+n}-t_i}\; \N{i}{n-1}{t} +
+		\frac{t_{i+n+1}-t}{t_{i+n+1}-t_{i+1}}\; \N{i+1}{n-1}{t}.
+\]
+
+\begin{Member}
+\item double	derivate( uint i, double t, uint k, bool \&error ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{i:}] A bázisfüggvény indexe.
+\item[\emph{t:}] A bázisfüggvény paramétere.
+\item[\emph{k:}] Hanyadik derivált.
+\item[\emph{error:}] Történt-e hiba.
+\end{Params}
+
+A member kiszámolja az \emph{i.} bázisfüggvény \emph{k.} deriváltját a
+\emph{t} helyen. Ha nem deriválható a függvény \emph{k}-szor, akkor az
+\emph{error} változóba hiba kerül. A deriválhatóság eldöntéséhez az \emph{m}
+adat membert használja, ami a knot multiplicitásokat tartalmazza. A
+paraméterekkel szembeni követelmény: 
+$0 \leq i \leq $ knot-vektor mérete $- 1 - (n+1)$, ahol $n$ a
+bázisfüggvény fokszáma, $t_0 \leq t \leq t_1$, ahol $t_0$ és $t_1$ a
+knot-vektorhoz tartozó legkisebb és legnagyobb csomópont, $k \geq 0$.
+A derivált meghatározásához a következõ rekurzív képletet használja:
+\[
+\N{i}{n}{t}^k = n \left( \frac{ \N{i}{n}{t}^k }{ t_{i+n}-t_i } +
+	\frac{ \N{i+1}{n}{t}^k }{ t_{i+n+1}-t_{i+1} } \right).
+\]
+
+\begin{Member}
+\item double	min\_t() const;
+\item double	max\_t() const;
+\end{Member}
+Visszaadják azt a legkisebb [legnagyobb] paraméterértéket, ahol már [még]
+$n+1$ bázisfüggvény különbözik nullától ($n$ a bázisfüggvények
+fokszáma). Képletben:
+\begin{eqnarray*}
+\textit{min\_t}() & = & \textit{kv}[n], \\
+\textit{max\_t}() & = & \textit{kv}[\textit{kv.size}() - 1 - n].
+\end{eqnarray*}
+
+\begin{Member}
+\item uint	K() const;
+\end{Member}
+
+Visszaadja a bázisfüggvények számát:
+\[
+\textit{K}() = \textit{kv.size}() - (n+1).
+\]
+
+\Private
+
+\begin{Member}
+\item double	compute( uint i, uint n, double t ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{i:}] A bázisfüggvény indexe.
+\item[\emph{n:}] A bázisfüggvény fokszáma.
+\item[\emph{t:}] A bázisfüggvény paramétere.
+\end{Params}
+
+Kiszámolja az \emph{i.} \emph{n.} fokú bázisfüggvény értékét a \emph{t}
+paraméterértékkel. A függvényhívás operátor használja.
+
+\begin{Member}
+\item double	compute\_derivative( uint i, uint n, \\
+	double t, uint k ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{i:}] A bázisfüggvény indexe.
+\item[\emph{n:}] A bázisfüggvény fokszáma.
+\item[\emph{t:}] A bázisfüggvény paramétere.
+\item[\emph{k:}] Hanyadik derivált.
+\end{Params}
+
+Kiszámolja az \emph{i.} \emph{n.} fokú bázisfüggvény \emph{k.} deriváltját az
+adott \emph{t} helyen. A \emph{derivate} member használja.
+
+\begin{Member}
+\item void	update\_m( const KnotVector \&kv );
+\end{Member}
+\begin{Params}
+\item[\emph{kv:}] Az aktuális knot-vektor.
+\end{Params}
+
+Frissíti a \emph{kv} knot-vektornak megfelelõen az \emph{m} adat member által
+eltárolt multiplicitásokat. Mindig meg kell hívni, ha lecserélõdik a \emph{kv}
+védett adat memberben tárolt knot-vektor.
+
+\Class{BSplineSurface}{bspline.hh}
+
+\Data
+
+\begin{Member}
+\item Base	*\_ubase;
+\item Base	*\_vbase;
+\end{Member}
+
+Az $u$ és $v$ irányhoz tartozó bázisfüggvények. Ezeket az adat membereket az
+\emph{uset\_param} és \emph{vset\_param} függvényekkel kell beállítani.
+
+\begin{Member}
+\item Matrix<Point> *points2;
+\end{Member}
+
+A kontrollpontokat tartalmazó mátrix. A \emph{set\_points} member állítja.
+
+\Public
+
+\begin{Member}
+\item ostream \&operator <{<} ( ostream \&o, const BSplineSurface \&b );
+\item istream \&operator >{>} ( istream \&i, BSplineSurface \&b );
+\end{Member}
+\begin{Params}
+\item[\emph{o:}] Kimeneti \emph{stream}.
+\item[\emph{i:}] Bemeneti \emph{stream}.
+\item[\emph{b:}] A használt felület.
+\end{Params}
+
+A paraméterként kapott \emph{b} felületet írják ki, illetve olvassák be a
+\emph{stream}-rõl.
+
+\begin{Member}
+\item BSplineSurface();
+\item BSplineSurface( const BSplineSurface \&b );
+\item virtual	BSplineSurface();
+\end{Member}
+\begin{Params}
+\item[\emph{b:}] A lemásolandó objektum.
+\end{Params}
+
+Az elsõ konstruktor egy olyan felületet hoz létre, amelynek a paramétereit
+használat elõtt még be kell állítani. A második konstruktor önmagára másolja a
+kapott felületet. A destruktor felszabadítja az objektum által lefoglalt
+memóriaterületeket.
+
+\begin{Member}
+\item void uset\_param( uint n, const KnotVector \&kv );
+\item void vset\_param( uint n, const KnotVector \&kv );
+\end{Member}
+\begin{Params}
+\item[\emph{n:}] A bázisfüggvény fokszáma.
+\item[\emph{kv:}] A bázisfüggvényekhez tartozó knot-vektor.
+\end{Params}
+
+Az $u$ és $v$ irányhoz tartozó bázisfüggvények és knot-vektorok beállítására
+szolgál. Mielõtt a felület pontjait lekérdezzük, ezeket a mûveleteket meg kell
+hívni. Létrehozzák a megfelelõ bázisfüggvény objektumokat az adott \emph{kv}
+knot-vektorral.
+
+\begin{Member}
+\item void uset\_param( uint n, uint k, double t0 = 0.0, \\
+	double t1 = 1.0 );
+\item void vset\_param( uint n, uint k, double t0 = 0.0, \\
+	double t1 = 1.0 );
+\end{Member}
+
+Az $u$ és $v$ irányhoz tartozó bázisfüggvények és knot-vektorok beállítására
+szolgál. Mielõtt a felület pontjait lekérdezzük, ezeket a mûveleteket meg kell
+hívni. Létrehozzák a megfelelõ bázisfüggvény objektumokat a megadott \emph{n}
+fokszámmal és egy egyenletes eloszlású knot-vektorral, amelynek \emph{t0} a
+legkisebb és \emph{t1} a legnagyobb csomópontja.
+
+\begin{Member}
+\item void set\_points( const Matrix<Point> \&p2 );
+\end{Member}
+\begin{Params}
+\item[\emph{p2:}] A kontrollpontokat tartalmazó mátrix.
+\end{Params}
+
+A paraméterként kapott \emph{p2} kontrollpont mátrixot lemásolja a
+\emph{points2} védett adat memberbe. A felület használata elõtt a
+kontrollpontok megadása kötelezõ.
+
+\begin{Member}
+\item Matrix<Point> \&get\_points() const;
+\end{Member}
+
+Visszaadja a kontrollpontokat tartalmazó mátrixot.
+
+\begin{Member}
+\item Point 	operator () ( double u, double v ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{u,v:}] A paramétertér egy pontja.
+\end{Params}
+
+Kiértékeli a felületet az adott $(u,v)$ paraméterpontban, és az eredményt
+visszaadja. A mûvelet meghívása elõtt meg kell adni a kontrollpontokat, az $u$
+és $v$ irányú knot-vektorokat és bázisfüggvény paramétereket. A számoláshoz
+használt képlet:
+\[
+\sum_{i=0}^n \sum_{j=0}^m P_{ij}\; \N{i}{un}{u} \N{j}{vn}{v}.
+\]
+
+\begin{Member}
+\item Point derivate( double u, double v, uint uk, uint vk, \\
+	bool \&error ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{u,v:}] A paramétertér egy pontja.
+\item[\emph{uk, vk:}] Az $u$ és $v$ változók szerinti deriválások száma.
+\end{Params}
+
+A függvény a következõ kifejezés értékét számolja ki:
+\[
+\frac{ \partial^{\textit{uk}+\textit{vk}} }
+	{ \partial u^{\textit{uk}} \partial v^{\textit{vk}} }
+	 \sum_{i=0}^n \sum_{j=0}^m P_{ij}\; \N{i}{un}{u} \N{j}{vn}{v}.
+\]
+
+\begin{Member}
+\item bool first\_q( double u, double v, double \&E, double \&F,\\
+	 double \&G ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{u,v:}] A paramétertér egy pontja.
+\item[\emph{E, F, G:}] Az elsõ alapmennyiségek.
+\end{Params}
+
+A member kiszámolja az elsõ alapmennyiségeket, és azokat az \emph{E},
+\emph{F}, \emph{G} változókban visszaadja. Ha hibatörtént a számítás során,
+akkor igazat ad vissza. A változók értéke a lefutás után:
+\[
+E = \Der{r(u,v)}{u}^2,\: F = \Der{r(u,v)}{u} \Der{r(u,v)}{v}, \:
+G = \Der{r(u,v)}{v}^2.
+\]
+
+\begin{Member}
+\item bool second\_q( double u, double v, double \&L, double \&M, \\
+		double \&N ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{u,v:}] A paramétertér egy pontja.
+\item[\emph{L, M, N:}] A második alapmennyiségek.
+\end{Params}
+
+A member kiszámolja a második alapmennyiségeket, és azokat az \emph{L},
+\emph{M}, \emph{N} változókban visszaadja. Ha hibatörtént a számítás során,
+akkor igazat ad vissza. A változók értéke a lefutás után:
+\[
+L = \left< \frac{\partial^2 r(u,v)}{\partial u^2},\; m \right>,\:
+M = \left< \frac{\partial^2 r(u,v)}{\partial u \partial v},\; m \right>,\:
+N = \left< \frac{\partial^2 r(u,v)}{\partial v^2},\; m \right>,\:
+\]
+\noindent ahol
+\[
+m = \frac{ \Der{r(u,v)}{u} \times \Der{r(u,v)}{v} }
+	{ \Norma{ \Der{r(u,v)}{u} \times \Der{r(u,v)}{v} } },
+\]
+a felület normálisa.
+
+\begin{Member}
+\item Point	normal( double u, double v, bool \&error ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{u,v:}] A paramétertér egy pontja.
+\item[\emph{error:}] Történt-e hiba a számítás során.
+\end{Params}
+
+A member a felület normálisát számolja ki az $(u,v)$ paraméterekhez tartozó
+pontban. Ha nem tudja kiszámolni a deriváltakat, akkor az \emph{error}
+változót igazra állítja. A visszaadott vektor a normális. A használt képlet:
+\[
+m = \frac{ \Der{r(u,v)}{u} \times \Der{r(u,v)}{v} }
+	{ \Norma{ \Der{r(u,v)}{u} \times \Der{r(u,v)}{v} } }.
+\]
+
+\begin{Member}
+\item double curvature( double u, double v, double du, \\
+		double dv, bool \&error ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{u,v:}] A paramétertér egy pontja.
+\item[\emph{du, dv:}] Irány a paramétertérben.
+\item[\emph{error:}] Történt-e hiba a számítás során.
+\end{Params}
+
+A member kiszámolja az $(u,v)$ paraméterértékekhez tartozó felületi pontban
+azt a normálgörbületet, amelyik a $(\textit{du}, \textit{dv})$ irányhoz
+tartozik. A hibát az \emph{error} változó jelzi. A normálgörbületeket az elsõ
+és második alapmennyiségeket használva számítja ki az alábbi képlet
+segítségével:
+\[
+\mathscr{K} = 
+	\frac{ L \textit{du}^2 + 2 M \textit{du}\textit{dv} + N\textit{dv}^2 }
+	{ E \textit{du}^2 + 2 F \textit{du}\textit{dv} + G\textit{dv}^2 },
+\]
+ahol $E$, $F$, $G$ az elsõ-, $L$, $M$, $N$ pedig a második alapmennyiségek.
+
+\begin{Member}
+\item double	gaussian( double u, double v, bool \&error ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{u,v:}] A paramétertér egy pontja.
+\item[\emph{error:}] Történt-e hiba a számítás során.
+\end{Params}
+
+Kiszámítja az $(u,v)$ paraméterekhez tartozó felületi pontban a Gauss
+szorzat-görbületet. A hibát az \emph{error} változó jelzi. A képlet:
+\[
+\mathscr{K} = \frac{ LN - NM }{ EG - F^2 },
+\]
+ahol $E$, $F$, $G$ az elsõ-, $L$, $M$, $N$ pedig a második alapmennyiségek.
+
+\begin{Member}
+\item double	minkowski( double u, double v, bool \&error ) const;
+\end{Member}
+\begin{Params}
+\item[\emph{u,v:}] A paramétertér egy pontja.
+\item[\emph{error:}] Történt-e hiba a számítás során.
+\end{Params}
+
+Kiszámítja az $(u,v)$ paraméterekhez tartozó felületi pontban a Minkowski
+összeg-görbületet. A hibát az \emph{error} változó jelzi. A képlet:
+\[
+\mathscr{H} = \frac{ EN - 2FM + GL }{ EG - F^2 },
+\]
+ahol $E$, $F$, $G$ az elsõ-, $L$, $M$, $N$ pedig a második alapmennyiségek.
+
+\begin{Member}
+\item const Base \&ubase() const;
+\item const Base \&vbase() const;
+\end{Member}
+
+Az $u$ és $v$ irányhoz tartozó bázisfüggvényeket adják vissza.
+
+\begin{Member}
+\item double 	umin\_t() const;
+\item double 	umax\_t() const;
+\item double 	vmin\_t() const;
+\item double 	vmax\_t() const;
+\end{Member}
+
+Visszaadják az $u$ és $v$ irányhoz tartozó knot-vektorokban szereplõ legkisebb
+és legnagyobb csomópont értékét.
+
+\begin{Member}
+\item uint 	uK() const;
+\item uint 	vK() const;
+\end{Member}
+
+Az $u$ és $v$ irányhoz tartozó kontrollpontok számát adják meg.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Felhasználói dokumentáció}
+
+Ez a fejezet azon felhasználóknak szól, akik még nem találkoztak a
+programunkkal. Nekik próbálunk néhány tanácsot adni, hogy könnyebben
+kezelhessék a programot.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Telepítés}
+
+Miután az Implementációs részben leírt környezetet feltelepítettük a gépre, a
+program telepítése rendkívül egyszerû. Másoljuk egy tetszõleges alkönyvtárba a
+forráskódot, majd a \emph{make all} parancsot kiadva fordítsuk le. Így
+létrejönnek az adott gépen futtatható állományok. Ha a fordítás nem sikeres,
+annak az lehet az oka, hogy az adott gépen nem ugyanabban az alkönyvtárban
+találhatók a fordításhoz szükséges környezeti állományok, mint a mi
+gépünkön. Ezt a hibát kijavíthatjuk a \emph{Makefile} elsõ sorainak
+szerkesztésével, amelyek pont az ehhez szükséges információkat tartalmazzák.
+A forráskódhoz tartozik két állomány a \emph{vtkInclude.tcl} és a
+\emph{vtkInt.tcl}. Telepítéskor be kell állítanunk a \emph{VTK\_TCL} környezeti
+változót úgy, hogy annak a könyvtárnak a nevét tartalmazza, amelyben ezek az
+állományok találhatók.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Futtatás}
+
+A fordításkor létrejött futtatható állományok a következõk:
+\begin{Params}
+\item[\emph{spl2real:}] egy már meglévõ B-Spline felületet mér le,
+\item[\emph{real2spl:}] mért adatokat közelít egy B-Spline felülettel,
+\item[\emph{spl2vtk:}] egy B-Spline felületet alakít a \emph{vtk} számára
+megjeleníthetõ formátumra,
+\item[\emph{cmpspl:}] két B-Spline felület kontrollpontjait hasonlítja össze.
+\end{Params}
+
+Van még egy futtatható állomány, \emph{showpoly}. Ezt azonban nem kell
+lefordítani mivel ez egy \emph{TCL} forrás kód, amit az interpreter értelmezni
+tud. Ez fogja az elõállított felületet megjeleníteni.
+
+\subsection{spl2real}
+
+Ez a program már meglévõ B-Spline felületet mér le és mért adatokat készít
+belõle. A valóságban mikor egy felületet lemérnek nem kapnak pontos értékeket,
+hiszen a mérõeszközök bizonyos hiba eltéréssel képesek csak mérni. A program
+elsõ paramétere arra szolgál, hogy ezt a mérésbõl származó pontatlanságot
+szimulálni tudjuk. Ha nem adunk meg hiba paramétert, akkor az alapértelmezés
+szerinti értékkel számol a program. Használata:
+
+\begin{Member}
+\item spl2real [-e <number>] <file>
+\end{Member}
+\begin{Params}
+\item[\emph{-e num:}] a mérési hiba maximumát határozza meg. Alapérték 1e-3.
+\item[\emph{<file>:}] annak a file-nak a neve, amelybe a készített B-Spline
+felületet el szeretnénk tárolni. 
+\end{Params}
+
+\subsection{real2spl}
+
+Ezzel a programmal kõzelíthetjük a mért adatokat B-Spline felülettel. A
+paraméterek segítségével beállíthatjuk, hogy milyen legyen a közelítõ felület,
+van-e olyan rész, amit nem kívánunk megjeleníteni, alkalmazzunk-e paraméter
+korrekciót és ha igen, akkor milyen módszer szerint, simítani akarjuk-e a
+felületet és ha igen, akkor milyen módszer szerint.
+ 
+
+\begin{Member}
+\item real2spl [-U num] [-V num] [-u num] [-v num] [-n num] [-m num] \newline
+ [-r num] [-e excl\_file] [-1|-2|-3|-4|-5|-6|-7|-8] <file> 
+\end{Member}
+\begin{Params}
+\item[\emph{-U num:}] Kontrollpontok száma $u$ irányban. Minél több
+kontrollpontot adunk meg, annál jobban meg fogja közelíteni a generált felület
+a mért pontokat. Ez nem feltétlenül jó, mert túl nagyra állítva már a hibák is
+megjelenhetnek a közelítõ felületen. Alapérték: 10.
+\item[\emph{-V num:}] Kontrollpontok száma $v$ irányban. Alapérték: 10.
+\item[\emph{-u num:}] A \emph{vtk} háromszögeket tartalmazó sávok segítségével
+jeleníti meg a felületet.  \emph{num} az $u$ irányban megjelenített háromszögek
+száma. Ha túl alacsonyra állítjuk, akkor nem tudja pontosan követni a
+felületet a megjelenítés. Ha viszont túl nagyra állítjuk, akkor nagyon sokáig
+fog tartani a felület generálása. Alapérték: 40. 
+\item[\emph{-v num:}] $v$ irányban megjelenített háromszögek száma. Alapérték:
+40.
+\item[\emph{-n num:}] A felületet $u$ irányban leíró B-Spline bázis függvények
+fokszáma. Egy nagyon bonyolult felületrõl származó adatokat általában
+magasabb fokszámú bázis függvényû Spline felülettel jobban tudunk közelíteni.
+Alapérték: 3.
+\item[\emph{-m num:}] A felületet $v$ irányban leíró B-Spline bázis függvények
+fokszáma. Alapérték: 3.
+\item[\emph{-e excl\_file:}] A mérési pontok vágásához szükséges file neve. A
+file olyan poligonok leírását tartalmazza, amelyek belsõ pontjait nem kell
+megjeleníteni, így a közelítésnél sem játszanak szerepet. 
+\item[\emph{-r number:}] A megengedhetõ legnagyobb átlagos hibanégyzet.
+\item[\emph{-1:}] Téglalap alakú mátrixot használjon a program. Ez az alapérték.
+\item[\emph{-2:}] Négyzetes mátrixot használjon a program.
+\item[\emph{-3:}] Alkalmazzon paraméter korrekciót az 1. eljárás
+felhasználásával. 
+\item[\emph{-4:}] Alkalmazzon paraméter korrekciót a 2. eljárás
+felhasználásával.
+\item[\emph{-5:}] Alkalmazzon paraméter korrekciót a 3. eljárás
+felhasználásával.
+\item[\emph{-6:}] Használja a felületek simítására az 1. funkcionált.
+\item[\emph{-7:}] Használja a felületek simítására a 2. funkcionált.
+\item[\emph{-8:}] Használja a felületek simítására a 3. funkcionált.
+\item[\emph{<file>:}] Annak a file-nak a neve, amelyben a mért adatok vannak.
+\end{Params}
+
+\subsection{spl2vtk}
+ 
+Ezzel a programmal tudjuk az elõállított felületet olyan formájúvá alakítani,
+amit a \emph{vtk} már képes megjeleníteni.
+
+\begin{Member}
+\item spl2vtk [-e <excl>] <file>
+\end{Member}
+\begin{Params}
+\item[\emph{-e <excl>:}] Annak a file-nak a neve, amely olyan poligonok
+leírását tartalmazza, amelyek belsõ pontjait nem kell megjeleníteni.
+\item[\emph{<file>:}] A megjelenítendõ felületet tartalmazó file neve.
+\end{Params}
+
+\subsection{cmpspl}
+
+Ez a program két B-Spline felülethez tartozó kontrollpoligont hasonlít
+össze. Eredményül azt adja meg, hogy az összetartozó kontrollpontok között
+mért távolságnégyzeteknek mennyi az átlaga. Ebbõl adódóan, ha mindkét
+paraméterében ugyanazt a felületet kapja bemenõ adatként, a visszaadott érték
+$0$. Csak olyan B-Spline felületek adhatók meg paraméterként, amelyek
+ugyanannyi kontrollpontból állnak.
+
+\begin{Member}
+\item cmpspl <spline1> <spline2>
+\end{Member}
+\begin{Params}
+\item[\emph{<spline\emph{i}>:}] Az összehasonlítandó felületet tartalmazó
+file-ok nevei.
+\end{Params}
+
+\subsection{showpoly}
+
+Ez a program fogja az elõállított felületet megjeleníteni. Futtatásakor egy új
+ablakban jelenik meg a paraméterként megadott felület. Lehetõségünk van
+különbözõ nézõpontból vizsgálni a felületet. Ezt úgy tehetjük meg, hogy az
+ablak egy pontján lenyomjuk az egér bal gombját, aminek hatására a felület
+abba az irányba elfordul. A nézõpont és a felület távolságát is
+állíthatjuk. Ehhez az egér jobb gombját kell valahol az ablakon lenyomnunk. Ha
+az egérkurzor az ablak felsõ felében volt, akkor közeledni fogunk a
+felülethez. Ennek megfelelõen ha az ablak alsó felén nyomtuk le a jobb gombot,
+a felület távolodni fog. Minél közelebb volt a kurzor az ablak közepéhez,
+annál lassabban fog közeledni vagy távolodni a felület. A megjelenítõ ablak
+reagál bizonyos billentyû lenyomásokra is:
+
+\begin{itemize}
+\item[\emph{w:}] A megjelenített felületet egy háromszög háló
+reprezentálja. Ezeknek a háromszögeknek a számát állíthattuk be a
+\emph{real2spl} program segítségével. Ebben a megjelenítési módban könnyebben
+forgathatjuk, nagyíthatjuk a felületet, mivel a megjelenített pontok száma
+lényegesen kevesebb.
+\item[\emph{s:}] Ebben a megjelenítési módban a háromszögeknek nem csak a
+kerülete, de a belseje is meg van jelenítve.
+\item[\emph{u:}] Lenyomásakor megjelenik az úgynevezett \emph{vtk Interactor},
+amelynek segítségével különbözõ parancsokat adhatunk a programnak. A parancsok
+segítségével megjeleníthetünk illetve elrejthetünk különbözõ, a felülethez
+tartozó segéd elemeket vagy megváltoztathatjuk a már megjelenített elemek
+jellemzõit. Segéd elem lehet: 
+\begin{list}{}{}
+\item[\emph{p\_actor:}] Kontrollpoligon háló. 
+\item[\emph{cont\_actor:}] Kontrollpontok.
+\item[\emph{outline\_actor:}] Annak a legkisebb téglatestnek az élei, amely még
+tartalmazza a felületet és a segéd elemeket.
+\item[\emph{cone\_actor:}] Kis kúpokat jelent, amelyek a paramétervonalak
+metszéspontjain helyezkednek el és csúcsuk a felület adott pontjába húzott
+normális irányába mutatnak.
+\end{list}
+
+
+A következõ parancsok megengedettek:
+\begin{list}{}{}
+\item[\emph{show \emph{par}:}] A paraméterként megadott segédelemet jeleníti
+meg.
+\item[\emph{hide \emph{par}:}] A paraméterként megadott segédelemet rejti el.
+\item[\emph{show\_all:}] Az összes segédelemet megjeleníti az ablakban.
+\item[\emph{hide\_all:}] Az összes segédelemet elrejti.
+\item[\emph{lfile \emph{par}:}] A paraméterként megadott file-ban megadott
+felületet jeleníti meg. A felület színei a Minkowski görbületet jelzik.
+\item[\emph{gfile \emph{par}:}] A paraméterként megadott file-ban megadott
+felületet jeleníti meg, de itt a felület színei a Gauss görbületet jelzik.
+\end{list}
+\item[\emph{e:}] Ennek segítségével zárhatjuk le az ablakot és fejezhetjük be
+a program futását.
+\end{itemize} 
+
+
+\begin{Member}
+\item showpoly <file>
+\end{Member}
+\begin{Params}
+\item[\emph{<file>:}] A megjelenítendõ felületet tartalmazó file neve.
+\end{Params}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\listoftables
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\listoffigures
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{thebibliography}{9}
+
+\bibitem{1}
+Szõkefalvi-Nagy Gyula, Gehér László, Nagy Péter,
+\textit{Differenciálgeometria}. Mûszaki Könyvkiadó, 1979.
+
+\bibitem{2}
+Karvasz Gyula, \textit{Analízis III}. Tankönyvkiadó, 1989.
+
+\bibitem{3}
+Biplab Sarkar, Chia-Hsiang Menq, \textit{Parameter optimization in
+approximating curves and surfaces to measurment data}. Computer Aided
+Geometric Design, 8(1991):267-290.
+
+\bibitem{4}
+Josef Hoschek, Dieter Lasser, \textit{Computer Aided Geometric
+Design}. B.G. Teubner, Stuttgart, 1989.
+
+\bibitem{5}
+Josef Hoschek, Ulrich Dietz, \textit{Smooth B-Spline surface
+approximation to scattered data}. Reverse Engineering, Editors J. Hoschek,
+W. Dankwort. B.G. Teubner, Stuttgart, 1996.
+
+\bibitem{6}
+Kátai Imre, \textit{Numerikus analízis}. Tankönyvkiadó, 1989.
+
+\bibitem{7}
+Stoyan Gisbert, Takó Galina, \textit{Numerikus módszerek I}.
+ELTE-Typo\TeX, 1993.
+
+\bibitem{8}
+Wettl Ferenc, Mayer Gyula, Sudár Csaba, \textit{\LaTeX kezdõknek és
+haladóknak}. Panem Kft., 1998.
+
+\end{thebibliography}
+
+\end{document}
+

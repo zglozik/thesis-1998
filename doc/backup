@@ -1,0 +1,4 @@
+cd ..
+tar cvzf doc.tar.gz doc/*.tex
+rcp doc.tar.gz digo.inf.elte.hu:
+rm doc.tar.gz

@@ -1,0 +1,13 @@
+#dvips -p =1 -pp 1-35,39,41,47,50-51,56- -o nopics.ps szakdoli.dvi
+#dvips -pp 36-38,40,42-46,48-49,52-55 -o pics.ps szakdoli.dvi
+#dvips -pp 37-38,40,42-46,48-49,52-55 -o pics.ps szakdoli.dvi
+
+dvips -p =1 -pp 1-10 -o p10.ps szakdoli.dvi
+dvips -p =1 -pp 11-20 -o p20.ps szakdoli.dvi
+dvips -p =1 -pp 21-30 -o p30.ps szakdoli.dvi
+dvips -p =1 -pp 31-40 -o p40.ps szakdoli.dvi
+dvips -p =1 -pp 41-50 -o p50.ps szakdoli.dvi
+dvips -p =1 -pp 51-60 -o p60.ps szakdoli.dvi
+dvips -p =1 -pp 61-70 -o p70.ps szakdoli.dvi
+dvips -p =1 -pp 71-80 -o p80.ps szakdoli.dvi
+dvips -p =1 -pp 81- -o p90.ps szakdoli.dvi

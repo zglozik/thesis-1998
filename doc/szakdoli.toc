@@ -1,0 +1,49 @@
+\select@language {magyar}
+\contentsline {chapter}{\numberline {1.}Bevezet\'es}{1}
+\contentsline {chapter}{\numberline {2.}Fel\"uletek reprezent\'aci\'oja}{4}
+\contentsline {section}{\numberline {2.1.}A reprezent\'aci\'ok h\'arom csoportja}{4}
+\contentsline {section}{\numberline {2.2.}Differenci\'algeometriai \"osszefoglal\'o}{5}
+\contentsline {section}{\numberline {2.3.}Polinomi\'alis reprezent\'aci\'ok}{8}
+\contentsline {subsection}{\numberline {2.3.1.}B-Spline g\"orb\'ek}{9}
+\contentsline {subsubsection}{B\'azisf\"uggv\'enyek \'es B-Spline g\"orb\'ek tulajdons\'agai}{11}
+\contentsline {subsection}{\numberline {2.3.2.}B-Spline fel\"uletek}{13}
+\contentsline {chapter}{\numberline {3.}Fel\"ulet k\"ozel\IeC {\'\i }t\'es}{15}
+\contentsline {section}{\numberline {3.1.}Legkisebb n\'egyzetek m\'odszere}{16}
+\contentsline {subsection}{\numberline {3.1.1.}Megold\'as n\'egyzetes m\'atrixszal}{17}
+\contentsline {subsection}{\numberline {3.1.2.}Megold\'as t\'ulhat\'arozott line\'aris egyenletrendszerrel}{17}
+\contentsline {subsection}{\numberline {3.1.3.}Householder transzform\'aci\'o}{19}
+\contentsline {section}{\numberline {3.2.}Funkcion\'alok}{21}
+\contentsline {subsection}{\numberline {3.2.1.}Felsz\IeC {\'\i }n minimaliz\'al\'asa}{22}
+\contentsline {subsection}{\numberline {3.2.2.}G\"orb\"uleti energia minimaliz\'al\'asa}{24}
+\contentsline {subsection}{\numberline {3.2.3.}Kontrollpoligon minimaliz\'al\'asa}{26}
+\contentsline {section}{\numberline {3.3.}Param\'eter korrekci\'o}{26}
+\contentsline {subsection}{\numberline {3.3.1.}Korrekci\'o vet\IeC {\'\i }t\'essel}{27}
+\contentsline {subsection}{\numberline {3.3.2.}Korrekci\'o els\H o rend\H u Taylor-polinommal}{28}
+\contentsline {subsection}{\numberline {3.3.3.}Korrekci\'o Newton m\'odszerrel}{30}
+\contentsline {section}{\numberline {3.4.}M\'er\'esi pontok v\'ag\'asa}{31}
+\contentsline {subsection}{\numberline {3.4.1.}Poligon bels\H o pontjai}{33}
+\contentsline {chapter}{\numberline {4.}Vizsg\'alat}{35}
+\contentsline {section}{\numberline {4.1.}Vizsg\'alati m\'odszerek}{35}
+\contentsline {section}{\numberline {4.2.}Legkisebb n\'egyzetek m\'odszere}{37}
+\contentsline {section}{\numberline {4.3.}Funkcion\'alok}{41}
+\contentsline {section}{\numberline {4.4.}Param\'eter korrekci\'o}{47}
+\contentsline {section}{\numberline {4.5.}M\'er\'esi pontok v\'ag\'asa}{49}
+\contentsline {chapter}{\numberline {5.}Implement\'aci\'o}{56}
+\contentsline {section}{\numberline {5.1.}K\"ornyezet}{56}
+\contentsline {section}{\numberline {5.2.}Oszt\'alyok \'es kapcsolatok}{57}
+\contentsline {section}{\numberline {5.3.}Referencia}{59}
+\contentsline {subsubsection}{Approximation}{59}
+\contentsline {subsubsection}{Householder}{70}
+\contentsline {subsubsection}{SurfGen}{70}
+\contentsline {subsubsection}{Vector}{73}
+\contentsline {subsubsection}{Set}{74}
+\contentsline {subsubsection}{Base}{76}
+\contentsline {subsubsection}{BSplineSurface}{79}
+\contentsline {chapter}{\numberline {6.}Felhaszn\'al\'oi dokument\'aci\'o}{84}
+\contentsline {section}{\numberline {6.1.}Telep\IeC {\'\i }t\'es}{84}
+\contentsline {section}{\numberline {6.2.}Futtat\'as}{84}
+\contentsline {subsection}{\numberline {6.2.1.}spl2real}{85}
+\contentsline {subsection}{\numberline {6.2.2.}real2spl}{85}
+\contentsline {subsection}{\numberline {6.2.3.}spl2vtk}{86}
+\contentsline {subsection}{\numberline {6.2.4.}cmpspl}{86}
+\contentsline {subsection}{\numberline {6.2.5.}showpoly}{86}

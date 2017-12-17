@@ -1,0 +1,179 @@
+                        TJKOZTAT•                       
+   a programtervez“ matematikus  hallgat¢k diplomamunk j val   
+        ‚s  llamvizsg j val kapcsolatos tudnival¢kr¢l         
+
+
+    I.  A diplomamunka t‚m j t az Informatika Tansz‚kcsoport-  
+nak j¢v  kell hagynia (TVSZ 30.7.). A t‚ma  a  Diplomamunka-  
+t‚ma bejelent“ lapon ¡rhat¢ le, amelyet okt¢ber  18-ig  kell  
+leadni. A t‚m k elfogad s t okt¢ber 30-ig  a  tansz‚kcsoport 
+hirdet“t bl j n jelezzk.   
+ 
+{ 
+A diplomamunka t‚mabejelent“ formanyomtatv ny az
+heureka:/st4/ftp/pub/szakdolgozat/otod 
+k”nyvt rban a
+Vprogtema.tex
+Latex file-ban tal lhat¢. Ugyanebben a k”nyvt rban van 
+k‚t st¡lusfile is:
+depi.sty
+epsf.sty
+‚s egy postscript file:
+cimer.ps
+Ezeket ftp-z‚k le saj t k”nyvt rukba, a formanyomtatv nyt  
+t”lts‚k ki. Ford¡ts k le, a ford¡t shoz kell a fenti h rom file.
+Ha sikeres a ford¡t s, akkor az xdvi programmal megn‚zhet” a 
+keletkezett dvi f jl.
+Ezt a f jlt 
+
+        dvips IIIprogtema.dvi -o IIIprogtema.ps
+        
+paranccsal postscript form ra lehet hozni, ezt a f jlt lev‚ve
+a h l¢zatr¢l megfelel” nyomtat¢n a
+
+        copy IIIprogtema.ps prn/b
+        
+paranccsal ki lehet nyomtatni.
+A t‚mabejelent“t a t‚mavezet“vel is ¡rass k al .
+}      
+    A diplomamunka t‚m ja az elfogad s ut n  megv ltoztatha- 
+t¢, de ekkor az  llamvizsg ra legkor bban   a  v ltoztat st¢l  
+sz m¡tott 6 h¢nap eltelt‚vel kerlhet sor (TVSZ 30.8.).  
+    II. A hallgat¢ a diplomamunka elk‚sz¡t‚s‚vel ‚s megv‚d‚-  
+s‚vel bizony¡tja, hogy k‚pes ir ny¡t s mellett  a  v lasztott  
+szakma alkot¢ m–vel‚s‚re.  A  diplomamunka  elk‚sz¡t‚s‚ben  a 
+szakmai ir ny¡t st a t‚mavezet“ v‚gzi. 
+    Ha a feladat m‚rete indokolja, akkor  t”bb  hallgat¢  is 
+dolgozhat egy k”z”s t‚m n, de ekkor mindegyik hallgat¢nak k-  
+l”n-kl”n diplomamunk t kell beadnia, amelyben a nagy feladat 
+ismertet‚se mellett els“sorban a saj t eredm‚nyeit k”zli.  
+    A diplomamunka tartalma  egy   probl‚ma  megold sa,  vagy 
+egy probl‚ma megold s ra m r megl‚v“ m¢dszerek ‚s  eredm‚nyek  
+£j terleten val¢ felhaszn l sa.   
+    A diplomamunk nak a k”vetkez“  f“ r‚szekb“l  kell  llnia: 
+    1. A dolgozatban megoldott probl‚ma megfogalmaz sa. 
+    2. A probl‚mak”r irodalm nak, az el“zm‚nyeknek r”vid  t- 
+tekint‚se. 
+    3. A probl‚ma megold s nak r‚szletes ismertet‚se, a  v - 
+lasztott megold s indokl sa. 
+    4. Az eredm‚nyek ”sszefoglal¢ ‚rt‚kel‚se ‚s a  levonhat¢ 
+k”vetkeztet‚sek le¡r sa.   
+    5. Ha a diplomamunka f“ eredm‚nye egy program,  akkor  a 
+program 
+       - Felhaszn l¢i dokument ci¢ja, 
+       - Fejleszt‚si dokument ci¢ja,  
+       - forr snyelvi list ja.  
+    A Felhaszn l¢i dokument ci¢ tartalmazza 
+    - a megoldott probl‚ma r”vid megfogalmaz s t, 
+    - a felhaszn lt m¢dszerek r”vid le¡r s t,  
+    - a program haszn lat hoz szks‚ges ”sszes inform ci¢t. 
+    A Fejleszt‚si dokument ci¢ tartalmazza 
+    - a probl‚ma r‚szletes specifik ci¢j t (k”vetelm‚nyana- 
+      l¡zis), 
+    - a felhaszn lt m¢dszerek r‚szletes le¡r s t, a haszn lt 
+      fogalmak defin¡ci¢j t, 
+    - a program logikai ‚s fizikai szerkezet‚nek le¡r s t 
+      (adatfolyam anal¡zis, modulfelbont s) 
+    - a tesztel‚si tervet ‚s a tesztel‚s eredm‚nyeit. 
+    III. A diplomamunk hoz mell‚kelni kell a  t‚mavezet“  v‚- 
+lem‚ny‚t . A v‚lem‚ny a k”vetkez“ ‚rt‚kel‚si szempontok  alap- 
+j n k‚szl: 
+ 
+    1. A megoldott probl‚ma  neh‚zs‚ge ,  bonyolults ga . 
+    2. A megold s  min“s‚gi  jellemz“i: a megold s  bonyolult- 
+s ga, sz‚ps‚ge, £jszer–s‚ge,  a  probl‚mak”rben  m r  megl‚v“ 
+megold sokhoz val¢ viszonya, azokkal val¢ kapcsolata. 
+    3. Ha a diplomamunka f“ eredm‚nye egy program,  akkor 
+       - a megold shoz haszn lt program  min“s‚gi   jellemz“i: 
+ ttekinthet“s‚g, m¢dos¡that¢s g,  kiterjeszthet“s‚g,  a  fel- 
+haszn l¢hoz val¢ alkalmazkod s, megbizhat¢s g, stb. 
+       - a Felhaszn l¢i dokument ci¢  haszn lhat¢s ga , milyen 
+k”nnyen ‚s gyorsan igaz¡tja el a felhaszn l¢t a program hasz- 
+n lat ban.  
+       - a Fejleszt“i dokument ci¢  milyen  m‚rt‚kben   seg¡ti 
+el“ a programban val¢ t j‚koz¢d st, a program  tov bbfejlesz- 
+t‚s‚t, karbantarthat¢s g t. A vizsg lt szempontok a  k”vetke- 
+z“k: 
+               - dokument ci¢ fel‚p¡t‚se, 
+               - a program sz”veg‚nek  ttekinthet“s‚ge, 
+               - a dokument ci¢ r‚szeinek  kapcsolata,  ”ssz- 
+                 hangja (algoritmusok, modulok,  programszer- 
+                 kezetek)  
+               - a tesztel‚s min“s‚gi ‚rt‚kel‚se. 
+    4. A hallgat¢  munk j r¢l  kialakult v‚lem‚ny.   
+    IV. A diplomamunk ra vonatkoz¢ formai k”vetelm‚nyek: 
+    1. A diplomamunk t bek”tve (vagy lapjait hitelesen  le- 
+f–zve ‚s r”gz¡tve) kell beny£jtani (TVSZ 30.11.). 
+    2. A diplomamunka els“ oldal n fel kell tntetni a  dip- 
+lomamunka c¡m‚t, szerz“j‚nek nev‚t, tagozat t  ‚s  szak t,  a 
+t‚mavezet“ nev‚t, a bead s hely‚t ‚s ‚v‚t.  
+    3. A dolgozat 2. ‚s 3. oldala a Diplomamunka-t‚ma  beje- 
+lent“.
+    4. A Bevezet‚s tartalmazzon a Diplomamunka-t‚ma bejelen- 
+t“ lapon kit–z”tt feladat teljes¡t‚s‚nek m‚rt‚k‚re  vonatkoz¢ 
+inform ci¢t. 
+    5. A diplomamunka f“ r‚szei a dolgozat ”n ll¢  fejezetei 
+legyenek.  
+    6. A diplomamunk nak legyen Tartalomjegyz‚ke ‚s  a  fel- 
+haszn lt irodalomr¢l Irodalomjegyz‚ke.  
+    Az ¡gy elk‚sz¡tett diplomamunk t az llamvizsga  Bizott- 
+s g eln”k‚hez kell beny£jtani az  llamvizsg t megel“z“en  k‚t 
+h‚ttel  (TVSZ 30.9.).
+A diplomamunk t ‚s a t‚mavezet“i v‚lem‚nyt az Informatika
+tansz‚kcsoport titk rs g ra kell leadni ‚s a lead s 
+d tum t az ott lev“ napl¢ba be kell jegyezni.
+
+
+    V. Az   llamvizsg ra  vonatkoz¢ k”vetelm‚nyek.  
+    1.  Az  llamvizsg ra bocs t s  felt‚tele  a  diplomamunka beny£jt sa (TVSZ 30.9.). 
+    2.  A diplomamunk ban csak j¢l m–k”d“, letesztelt program 
+‚s annak dokument ci¢ja adhat¢ be.  
+    3.  A diplomamunk t ”tfokozat£ min“s¡t‚ssel kell elb¡r l- 
+ni. Ha a diplomamunka min“s¡t‚se el‚gtelen, a hallgat¢nak  £j 
+diplomamunk t kell k‚sz¡tenie. (TVSZ 30.12.). 
+    4. Az  Orsz gos Di kk”ri Konferenci n  f“d¡jat  vagy  els“ 
+d¡jat nyert dolgozatot az llamvizsga Bizotts g eln”ke v‚d‚si  
+elj r s n‚lkl, jeles min“s¡t‚ssel  elfogadhatja,  amennyiben 
+az megfelel a diplomamunk kkal szemben t masztott  k”vetelm‚- 
+nyeknek (TVSZ 30.13.). 
+    5. Az  llamvizsga k‚t r‚szb“l  ll. 
+       - gyakorlati r‚sz:  a  jel”ltnek    meg  kell  v‚denie 
+         szakdolgozat t , a jel”lt ismerteti a v‚gzett  munka 
+         c‚lj t  ‚s  ”sszefoglalja   eredm‚nyeit,   majd   a 
+         t‚mavezet“ v‚lem‚ny‚nek ismertet‚se ut n v laszol a 
+         bizotts g k‚rd‚seire.  
+       - elm‚leti r‚sz: a hallgat¢nak  az   ltala  kiv lasz- 
+         tott, s voknak megfelel“ -  el“zetesen  k”zz‚tett - 
+         t‚mak”r”kb“l sz mot kell adnia arr¢l, hogy  rendel- 
+         kezik a p lya m–vel‚s‚hez szks‚ges   szakmai ,   m¢d- 
+         szertani ismeretekkel ‚s k‚szs‚gekkel. 
+     6.  Az  llamvizsg ra jelentkezni legk‚s“bb az   llamvizs- 
+gaid“szak el“tt 30 nappal lehet  (TVSZ 31.11.). Az  llam-
+vizsgaid“szak megegyezik a vizsgaid“szakkal. A vizsgaid“-
+pontokat a hallgat¢k egy k‚pvisel“j‚nek kell a vizsga-
+bizotts gok eln”keivel ‚s tagjaival megbesz‚lni, ‚s a ki-
+t–z”tt id“pontokra a vizsg z¢ hallgat¢k n‚vsor t a bizotts -
+gok eln”keinek kell leadni.
+    A t j‚koztat¢ban megadott id“pontok nem vonatkoznak a
+D‚k ni Hivatal  ltal megadott bejelent‚si hat rid“kre, k‚rem, 
+hogy az  llamvizsga probl‚mamentes lebonyol¡t sa ‚rdek‚ben
+az ott megadott bejelent‚si k”telezetts‚geiknek is tegyenek
+eleget.
+ 
+Budapest, 1996. okt¢ber 8.  
+                                            Nagy S ra
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+\=

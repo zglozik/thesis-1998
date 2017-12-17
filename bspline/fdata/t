@@ -1,0 +1,6 @@
+../real2spl -7 -r 0.5 first >> first.out
+../real2spl -7 -r 0.6 first >> first.out
+../real2spl -7 -r 0.7 first >> first.out
+../real2spl -7 -r 0.8 first >> first.out
+../real2spl -7 -r 0.9 first >> first.out
+../real2spl -7 -r  1  first >> first.out

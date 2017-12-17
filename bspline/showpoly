@@ -1,0 +1,281 @@
+#!/bin/sh
+# start up vtk \
+exec vtk $0 "$@"
+
+if { [info exists env(VTK_TCL)] } {
+	set path $env(VTK_TCL)
+} else {
+	set path "."
+}
+
+source $path/vtkInclude.tcl
+source $path/vtkInt.tcl
+source $path/colors.tcl
+
+set par_ext ".par"
+set sf_ext ".surf"
+set cp_ext ".cp"
+set ga_ext ".gauss"
+
+# Functions for modifying the display at run time
+
+proc show { s } {
+	global actor_list ren1 ren_win
+	set msg "Mar lathato: "
+
+	if [$actor_list IsItemPresent $s] { 
+		puts $msg$s
+	} else {
+		$ren1 AddActors $s
+		$ren_win Render
+	}
+}
+
+
+proc hide { s } {
+	global actor_list ren1 ren_win
+	set msg "Mar nem lathato: "
+
+	if [$actor_list IsItemPresent $s] { 
+		$ren1 RemoveActors $s
+		$ren_win Render
+	} else {
+		puts $msg$s
+	}
+}
+
+
+proc hide_all {} {
+
+	hide p_actor
+	hide cont_actor
+	hide outline_actor
+	hide cone_actor
+}
+
+proc show_all {} {
+
+	show p_actor
+	show cont_actor
+	show outline_actor
+	show cone_actor
+}
+
+proc create_poly { }  {
+	
+	set cp_dim [[grid GetOutput] GetDimensions]
+	set cp_i [lindex $cp_dim 0]
+	set cp_j [lindex $cp_dim 1]
+	set cp_k [lindex $cp_dim 2]
+	
+	lines Reset
+	
+	for {set i 0} {$i<$cp_i} {incr i 1} {
+		lines InsertNextCell $cp_j
+		for {set j 0} {$j<$cp_j} {incr j 1}	{
+			lines InsertCellPoint [expr $i*$cp_j+$j]
+		}
+	}
+	
+	for {set j 0} {$j<$cp_j} {incr j 1} {
+		lines InsertNextCell $cp_i
+		for {set i 0} {$i<$cp_i} {incr i 1}	{
+			lines InsertCellPoint [expr $i*$cp_j+$j]
+		}
+	}
+}
+
+
+proc lfile { file_name } {
+  global par_ext sf_ext cp_ext ren_win
+
+  param_lines SetFilename $file_name$par_ext
+  param_lines Modified
+  param_lines Update
+  surface SetFilename $file_name$sf_ext
+  surface Modified
+  surface Update
+  grid SetFilename $file_name$cp_ext
+  grid Modified
+  grid Update
+  eval lookup SetTableRange [[surface GetOutput] GetScalarRange]
+#  lookup SetTableRange -6 5
+  eval surf_mapper SetScalarRange [lookup GetTableRange]
+  puts [[surface GetOutput] GetScalarRange]
+  p_lines SetPoints [[grid GetOutput] GetPoints]
+
+  create_poly
+  $ren_win Render
+}
+
+proc gfile { file_name } {
+  global par_ext ga_ext cp_ext ren_win
+
+  param_lines SetFilename $file_name$par_ext
+  param_lines Modified
+  param_lines Update
+  surface SetFilename $file_name$ga_ext
+  surface Modified
+  surface Update
+  grid SetFilename $file_name$cp_ext
+  grid Modified
+  grid Update
+  eval lookup SetTableRange [[surface GetOutput] GetScalarRange]
+  eval surf_mapper SetScalarRange [lookup GetTableRange]
+  p_lines SetPoints [[grid GetOutput] GetPoints]
+
+  create_poly
+  $ren_win Render
+}
+
+#-----------------------------------------------------------------------
+#	create render windows
+#-----------------------------------------------------------------------
+
+vtkRenderMaster master
+set ren_win [master MakeRenderWindow]
+set ren1 [$ren_win MakeRenderer]
+set iren [$ren_win MakeRenderWindowInteractor]
+
+# build up surface
+
+
+vtkPolyReader surface
+
+vtkLookupTable lookup
+  lookup SetHueRange 0 0.8
+  lookup SetSaturationRange 0.8 1
+  lookup SetValueRange 1 1
+
+
+#vtkSmoothPolyFilter smooth
+#  smooth SetInput [surface GetOutput]
+
+vtkPolyMapper surf_mapper
+  surf_mapper SetInput [surface GetOutput]
+  surf_mapper SetLookupTable lookup
+#  surf_mapper ScalarsVisibleOff
+
+
+vtkActor surf_actor
+  surf_actor SetMapper surf_mapper
+#  eval [surf_actor GetProperty] SetColor $powder_blue
+$ren1 AddActors surf_actor
+
+# build up cones
+
+vtkPolyNormals normal_surface
+  normal_surface SetInput [surface GetOutput]
+
+vtkConeSource cone
+  cone SetResolution 6
+  cone SetRadius 0.05
+  cone SetHeight 0.1
+
+vtkTransform trans
+  trans Translate 0.05 0 0
+
+vtkTransformPolyFilter trans_fil
+  trans_fil SetInput [cone GetOutput]
+  trans_fil SetTransform trans 
+
+vtkGlyph3D cone_glyph
+  cone_glyph SetSource [trans_fil GetOutput]
+  cone_glyph SetInput [normal_surface GetOutput]
+  cone_glyph SetScaling 0
+  cone_glyph UseNormal
+
+vtkPolyMapper cone_mapper
+  cone_mapper SetInput [cone_glyph GetOutput]
+  cone_mapper ScalarsVisibleOff
+
+vtkActor cone_actor
+  cone_actor SetMapper cone_mapper
+  eval [cone_actor GetProperty] SetColor $sea_green
+
+#$ren1 AddActors cone_actor
+
+# build up parametric lines
+
+vtkPolyReader param_lines
+
+vtkPolyMapper s_map
+	s_map SetInput [param_lines GetOutput]
+
+vtkActor s_actor
+	s_actor SetMapper s_map
+	eval [s_actor GetProperty] SetColor $black
+
+#$ren1 AddActors s_actor
+
+# build up control points and control poligon
+
+vtkStructuredGridReader grid
+
+vtkCellArray lines
+
+vtkPolyData p_lines
+	p_lines SetLines lines
+
+vtkPolyMapper p_map
+	p_map SetInput p_lines 
+
+vtkActor p_actor
+	p_actor SetMapper p_map
+	eval [p_actor GetProperty] SetColor $red
+
+#$ren1 AddActors p_actor
+
+vtkSphereSource ball
+  ball SetRadius 0.03
+
+vtkGlyph3D ball_glyph
+  ball_glyph SetInput [grid GetOutput]
+  ball_glyph SetSource [ball GetOutput]
+
+vtkDataSetMapper cont_mapper
+  cont_mapper SetInput [ball_glyph GetOutput]
+
+vtkActor cont_actor
+  cont_actor SetMapper cont_mapper
+  eval [cont_actor GetProperty] SetColor $pink
+
+#$ren1 AddActors cont_actor
+
+# build up outline
+
+vtkAppendFilter all_points
+  all_points AddInput [surface GetOutput]
+  all_points AddInput [cone_glyph GetOutput]
+  all_points AddInput [ball_glyph GetOutput]
+
+vtkOutlineFilter outline
+  outline SetInput [all_points GetOutput]
+
+vtkPolyMapper outline_mapper
+  outline_mapper SetInput [outline GetOutput]
+
+vtkActor outline_actor
+  outline_actor SetMapper outline_mapper
+  eval [outline_actor GetProperty] SetColor $white
+
+#$ren1 AddActors outline_actor
+
+set actor_list [$ren1 GetActors]
+
+if { $argc != 1 } {
+	puts "usage: showpoly <file_name>\n"
+	exit
+}
+
+lfile $argv
+
+# finish initalization
+
+eval $ren1 SetBackground $grey
+
+$iren Initialize
+$iren SetUserMethod { wm deiconify .vtkInteract }
+
+wm withdraw .
+

@@ -1,0 +1,119 @@
+
+\sloppy
+\def\row#1#2{\hskip-\parindent #1{\bf#2}\dotfill}
+\def\next{\par\vskip6pt}
+\documentstyle[titlepage,epsf,depi]{book}
+\addtolength{\topmargin}{-20pt}
+\addtolength{\textheight}{80pt}
+\addtolength{\textwidth}{20pt}
+\oddsidemargin=63pt
+\evensidemargin=63pt
+\begin{document}
+.\\
+\eltefejlec
+\large
+\vskip40pt
+\centerline{\Large DIPLOMAMUNKA-T\'EMA BEJELENT\H O}
+\vskip30pt
+%
+% a masodik zarojelbe kell irni a nevet:
+%
+\row{N\'ev: }{Éles András, Glózik Zoltán}\next
+\hskip-\parindent Tagozat: {\bf nappali}\ \dots\hfill
+\row{Szak: }{programtervez\H o matematikus}\next
+%
+% a masodik zarojelbe kell irni a temavezeto nevet:
+%
+\row{T\'emavezet\H o neve: Dr Renner Gábor}{}\next
+%
+% a kovetkezo 3 sorban 
+% a masodik zarojelbe kell irni a temavezeto munkahelyet:
+% (az 1. sor rovid):
+%
+\row{\hskip65pt munkahely\'enek neve \'es c\'\i me: }{}\next
+\row{\hskip65pt}{Magyar Tudományos Akadémia}\next
+\row{\hskip65pt}{Számítástechnikai és Automatizálási Kutató}\next
+\row{\hskip65pt}{Intézete}\next
+\row{\hskip65pt}{1111 Budapest, Kende u. 13-17.}\next
+%
+% a kovetkezo 2 sorban 
+% a masodik zarojelbe kell irni a temavezeto beosztasat es iskolai vegzettseget,
+% (az 1. sor rovid):
+%
+\row{\hskip65pt beoszt\'asa \'es iskolai v\'egzetts\'ege: }{villamosmérnök}\next
+\row{\hskip65pt}{Tudományos fômunkatárs}\next
+%
+% a masodik zarojelbe kell irni a dolgozat cimet, 
+% tobb soros is lehet, nem kell sorokra tordelni :
+%
+\row{A dolgozat c\'\i me: }{Bonyolult geometriájú felületek matematikai
+reprezentációjának elôállítása mérési hibákkal terhelt diszkrét adatokból}\next
+\vskip10pt
+\hskip-\parindent\leftline{A dolgozat t\'em\'aja:}
+\vskip10pt
+% ide a t\'emale\'\i r\'as j\"on:
+% a t\'emale\'\i r\'s m\'erete legal\'abb egy oldal legyen!
+
+A bonyolult geometriájú mûszaki objektumok, például autókarosszériák tervezése
+úgy történik, hogy egy fizikai modellen nagy sûrûségû méréseket végeznek. A
+méréseket például laser scanner-rel végzik. A mérések alapján kell elôállítani
+az objektum matematikai reprezentációját. A feladat megoldása számos
+számítástechnikai és matematikai problémát vet fel, ezek vizsgálata és
+számítógépes kísérletek végzése a diploma munka célja. Az elvégzendô
+részfeladatok a következôk:
+
+1., Tanulmányozza és foglalja össze a felület-rekonstrukcióval kapcsolatos
+szakirodalmat és vázolja az eddigi megoldásokat.
+
+2., Reprezentáció: Vizsgálja meg a felületillesztéshez használható, és a
+jelenlegi mûszaki tervezô rendszerekhez illeszkedô reprezentációkat és
+határozza meg azok paramétereit (knot eloszlás, fokszám, control pontok
+száma).
+
+3., Funkcionálok: Tanulmányozza a minimalizálandó funkcionálok különbözô 
+fajtáit a feladat megoldhatósága és a felület geometria tulajdonságainak
+szempontjából.
+
+4., Paraméterezés: Dolgozzon ki módszert a mérési pontoknak megfelelô felületi
+pontok paramétereinek meghatározására, illetve minimalizálás közbeni
+javítására.
+
+5., Feltételes minimalizálás: Dolgozza ki a felület illesztést, funkcionál
+minimalizálást, kapcsolódó felületek esetére, különbözô folytonossági
+feltételek mellett.
+
+Az algoritmusokat számítógépes kísérletekkel ellenôrizze, hasonlítsa össze
+azokat hatékonyság, felület alak, gyorsaság szempontjából. A 
+param\'eterez\'essel \'Eles Andr\'as, a felt\'eteles minimaliz\'al\'assal
+Gl\'ozik Zolt\'an fog r\'eszletesen foglalkozni.
+
+% itt a t\'emale\'\i r\'as v\'ege.
+\bigskip
+
+\leftline{A t\'emavezet\'est v\'allalom:}
+
+\rightline{....................................}
+\rightline{(a t\'emavezet\H o al\'a\'\i r\'asa)}
+
+\vskip 1cm
+
+\leftline{K\'erem a diplomamunka t\'em\'aj\'anak j\'ov\'ahagy\'as\'at.}
+
+\leftline{Budapest, 1997. okt\'ober ...}
+
+\rightline{....................................}
+\rightline{(a hallgat\'o al\'a\'\i r\'asa)}
+
+\vskip 1cm
+
+\leftline{A diplomamunka-t\'em\'at az Informatika Tansz\'ekcsoport j\'ov\'ahagyta.}
+
+\leftline{Budapest, ...............................}
+
+\vskip 0.3cm
+
+\rightline{....................................}
+\rightline{ Dr. Kozma L\'aszl\'o}
+\rightline{megb\'izott tansz\'ekcsoportvezet\H o }
+
+\end{document}

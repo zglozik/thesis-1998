@@ -1,0 +1,1252 @@
+
+1., File-ok listája:
+
+dir = splines
+
+simple.spl:
+~~~~~~~~~~~
+N = 3
+M = 3
+k = 30
+l = 30
+n+1 = 4
+m+1 = 4
+
+complex.spl:
+~~~~~~~~~~~~
+N = 3
+M = 3
+k = 30
+l = 30
+n+1 = 7
+m+1 = 7
+
+hilly3.spl:
+~~~~~~~~~~
+
+N = 3
+M = 3
+k = 30
+l = 30
+n+1 = 6
+m+1 = 6
+
+hilly4.spl:
+~~~~~~~~~~
+
+N = 4
+M = 4
+k = 30
+l = 30
+n+1 = 5
+m+1 = 5
+
+complex.real,
+hilly3.real,
+hilly4.real,
+simple.real:
+~~~~~~~~~~~~
+error = 0.05
+
+dir = approx
+
+simple.spl: <- simple.real
+~~~~~~~~~~~
+time ../real2spl -U 4 -V 4 -u 31 -v 31 -2 simple  
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.0008367452
+   5.38s real    1.64s user    0.30s system
+
+time ../real2spl -U 4 -V 4 -u 31 -v 31 -1 simple
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000836745
+   5.95s real    2.10s user    0.30s system 
+
+kontrollpontok számának növelése:
+
+time ../real2spl -U 8 -V 8 -u 31 -v 31 -1 simple 
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000795317
+  17.37s real   16.60s user    0.13s system
+
+time ../real2spl -U 12 -V 12 -u 31 -v 31 -1 simple
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000702113
+  80.51s real   74.37s user    0.49s system 
+
+time ../real2spl -U 16 -V 16 -u 31 -v 31 -1 simple
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000616019
+ 225.20s real  222.45s user    0.53s system 
+
+második algoritmus:
+
+time ../real2spl -2 -U 4 -V 4 -u 91 -v 91 simple
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000812069
+  11.20s real    1.59s user    0.44s system 
+
+time ../real2spl -2 -U 5 -V 5 -u 91 -v 91 simple  
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000806032
+   7.12s real    2.69s user    0.23s system 
+
+time ../real2spl -2 -U 6 -V 6 -u 91 -v 91 simple
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000797865
+   8.65s real    4.24s user    0.28s system 
+
+time ../real2spl -2 -U 7 -V 7 -u 91 -v 91 simple
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.00078559
+   8.36s real    6.67s user    0.19s system 
+
+elhagyással:
+
+time ../real2spl -2 -U 4 -V 4 -e simple -u 91 -v 91 simple
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000817699
+   4.85s real    1.64s user    0.28s system 
+
+time ../real2spl -2 -U 5 -V 5 -e simple -u 91 -v 91 simple
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000807511
+   7.57s real    2.79s user    0.31s system 
+
+time ../real2spl -2 -U 6 -V 6 -e simple -u 91 -v 91 simple
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000793167
+   7.88s real    4.42s user    0.34s system 
+
+time ../real2spl -2 -U 7 -V 7 -e simple -u 91 -v 91 simple
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000779993
+  10.20s real    7.02s user    0.26s system 
+
+fokszámnövelés:
+
+time ../real2spl -2 -U 7 -V 7 -n 3 -m 3 simple 
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.00078559
+  13.12s real    6.93s user    0.37s system
+
+time ../real2spl -2 -U 7 -V 7 -n 4 -m 4 simple
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000785894
+  13.34s real    8.77s user    0.32s system 
+
+time ../real2spl -2 -U 7 -V 7 -n 5 -m 5 simple
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000785884
+  27.71s real   12.20s user    0.57s system 
+
+time ../real2spl -2 -U 7 -V 7 -n 6 -m 6 simple
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000785841
+  29.96s real   17.36s user    0.50s system 
+
+elhagyás:
+
+time ../real2spl -e simple -2 -U 7 -V 7 -n 3 -m 3 simple
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000779993
+  17.24s real    6.99s user    0.46s system 
+
+time ../real2spl -e simple -2 -U 7 -V 7 -n 4 -m 4 simple
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000780064
+  13.26s real    8.78s user    0.33s system 
+
+time ../real2spl -e simple -2 -U 7 -V 7 -n 5 -m 5 simple
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000779822
+  15.51s real   12.10s user    0.31s system 
+
+time ../real2spl -e simple -2 -U 7 -V 7 -n 6 -m 6 simple
+Writing file: simple.spl...
+done.
+average of squares of differences: 0.000779719
+  20.40s real   17.38s user    0.29s system
+
+
+összehasonlítás:
+hiba 0.05:
+
+../cmpspl simple.spl ../splines/simple.spl
+average of squares of differences: 0.0188989
+
+../cmpspl hilly4.spl ../splines/hilly4.spl
+average of squares of differences: 0.0580196
+
+../cmpspl complex.spl ../splines/complex.spl 
+average of squares of differences: 0.0360018
+
+without error:
+
+../cmpspl ../splines/simple.spl simple.spl
+average of squares of differences: 1.16861e-06
+
+../cmpspl ../splines/hilly4.spl hilly4.spl
+average of squares of differences: 6.03868e-06
+
+../cmpspl ../splines/complex.spl complex.spl
+average of squares of differences: 5.00293e-07
+
+funkcionálok:
+~~~~~~~~~~~~~
+
+1. funkcionál:
+
+time ../real2spl -6 simple
+Writing file: simple.spl...
+Step 0. (0): ...
+average of squares of differences: 0.000745148
+Step 0. (0.1): ...
+average of squares of differences: 0.000749843
+Step 0. (0.2): ...
+average of squares of differences: 0.000766832
+Step 0. (0.3): ...
+average of squares of differences: 0.000802822
+Step 0. (0.4): ...
+average of squares of differences: 0.000870096
+Step 0. (0.5): ...
+average of squares of differences: 0.00099302
+Step 0. (0.6): ...
+average of squares of differences: 0.00122569
+Step 0. (0.7): ...
+average of squares of differences: 0.00171006
+Step 0. (0.8): ...
+average of squares of differences: 0.0029368
+Step 0. (0.9): ...
+average of squares of differences: 0.00789743
+done.
+average of squares of differences: 0.00789743
+ 215.98s real  208.57s user    0.25s system 
+
+2. funkcionál:
+
+time ../real2spl -7 simple
+Writing file: simple.spl...
+Step 0. (0): ...
+average of squares of differences: 0.000745148
+Step 1. (0.1): ...
+average of squares of differences: 0.000745663
+Step 2. (0.2): ...
+average of squares of differences: 0.000747074
+Step 3. (0.3): ...
+average of squares of differences: 0.000749263
+Step 4. (0.4): ...
+average of squares of differences: 0.000752199
+Step 5. (0.5): ...
+average of squares of differences: 0.000755934
+Step 6. (0.6): ...
+average of squares of differences: 0.000760636
+Step 7. (0.7): ...
+average of squares of differences: 0.000766723
+Step 8. (0.8): ...
+average of squares of differences: 0.000775419
+Step 9. (0.9): ...
+average of squares of differences: 0.00079264
+done.
+average of squares of differences: 0.00079264
+ 212.10s real  208.80s user    0.29s system 
+
+3. funkcionál:
+
+ time ../real2spl -8 simple
+Writing file: simple.spl...
+Step 0. (0): ...
+average of squares of differences: 0.000745148
+Step 1. (0.1): ...
+average of squares of differences: 0.000790239
+Step 2. (0.2): ...
+average of squares of differences: 0.00087991
+Step 3. (0.3): ...
+average of squares of differences: 0.00106272
+Step 4. (0.4): ...
+average of squares of differences: 0.00141068
+Step 5. (0.5): ...
+average of squares of differences: 0.00206671
+Step 6. (0.6): ...
+average of squares of differences: 0.00335061
+Step 7. (0.7): ...
+average of squares of differences: 0.00610232
+Step 8. (0.8): ...
+average of squares of differences: 0.0131716
+Step 9. (0.9): ...
+average of squares of differences: 0.0405604
+done.
+average of squares of differences: 0.0405604
+ 222.93s real  208.66s user    0.46s system
+
+
+paraméterkorrekció:
+
+1. algoritmus:
+	Kontrollpontok száma: 10x10
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
+time ../real2spl -3 simple
+Writing file: simple.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.000745148
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.000387061
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.000365196
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.000360686
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.000358959
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.000357983
+parameter correction...
+done.
+average of squares of differences: 0.000357531
+545.47user 0.42system 9:12.07elapsed 98%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (1656major+1691minor)pagefaults 0swaps
+
+	Kontrollpontok száma: 5x5
+	~~~~~~~~~~~~~~~~~~~~~~~~~
+
+time ../real2spl -U 5 -V 5 -3 simple
+Writing file: simple.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.000806032
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.000424144
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.000400682
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.000395653
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.000393913
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.000393125
+parameter correction...
+done.
+average of squares of differences: 0.000392763
+196.26user 0.35system 3:20.21elapsed 98%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (1062major+786minor)pagefaults 0swaps
+
+
+2. algoritmus:
+	Kontrollpontok száma: 10x10
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+time ../real2spl -4 simple 
+Writing file: simple.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.000745148
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.000360401
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.000359109
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.000358385
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.000357719
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.000357096
+parameter correction...
+done.
+average of squares of differences: 0.000356799
+153.39user 0.34system 2:35.98elapsed 98%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (1079major+1670minor)pagefaults 0swaps
+
+	Kontrollpontok száma: 5x5
+	~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ time ../real2spl -U 5 -V 5 -4 simple
+Writing file: simple.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.000806032
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.000395673
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.000393419
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.000392826
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.000392575
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.00039242
+parameter correction...
+done.
+average of squares of differences: 0.000392357
+23.45user 0.30system 0:26.51elapsed 89%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (1353major+786minor)pagefaults 0swaps
+
+
+3. algoritmus:
+	Kontrollpontok száma: 10x10
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+time ../real2spl -5 simple
+Writing file: simple.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.000745148
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.000365807
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.000359311
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.000358364
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.000357696
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.000357086
+parameter correction...
+done.
+average of squares of differences: 0.000356793
+166.55user 0.45system 2:48.41elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (1136major+1670minor)pagefaults 0swaps
+
+	Kontrollpontok száma: 5x5
+	~~~~~~~~~~~~~~~~~~~~~~~~~
+
+time ../real2spl -U 5 -V 5 -5 simple
+Writing file: simple.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.000806032
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.000401004
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.000393614
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.00039283
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.000392566
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.000392408
+parameter correction...
+done.
+average of squares of differences: 0.000392345
+28.64user 0.28system 0:32.93elapsed 87%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (1602major+786minor)pagefaults 0swaps
+
+
+--------------------------------------------------
+hilly4.spl <- hilly4.real
+~~~~~~~~~~
+
+time ../real2spl -1 -n 4 -m 4 -U 5 -V 5 hilly4
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.00076617
+  12.76s real    4.72s user    0.43s system
+
+time ../real2spl -2 -n 4 -m 4 -U 5 -V 5 hilly4
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.00076617
+  13.49s real    3.92s user    0.41s system
+
+kontrollpontok számának növelése:
+
+time ../real2spl -2 -U 4 -V 4 hilly4 
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.00112126
+  11.97s real    1.62s user    0.46s system 
+
+time ../real2spl -2 -U 5 -V 5 hilly4
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.000845686
+   8.56s real    2.72s user    0.32s system 
+
+time ../real2spl -2 -U 6 -V 6 hilly4
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.000834935
+   7.38s real    4.19s user    0.32s system 
+
+time ../real2spl -2 -U 7 -V 7 hilly4
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.000823847
+   8.79s real    6.60s user    0.16s system
+
+elhagyással:
+
+time ../real2spl -e hilly4 -2 -U 4 -V 4 hilly4 
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.00109032
+   3.57s real    1.77s user    0.27s system 
+
+time ../real2spl -e hilly4 -2 -U 5 -V 5 hilly4
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.000849877
+   5.67s real    2.97s user    0.24s system 
+
+time ../real2spl -e hilly4 -2 -U 6 -V 6 hilly4
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.000839458
+   5.88s real    4.86s user    0.15s system 
+
+time ../real2spl -e hilly4 -2 -U 7 -V 7 hilly4
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.000827035
+   7.84s real    7.51s user    0.11s system
+
+fokszámnövelés:
+
+time ../real2spl -n 3 -m 3 -2 -U 7 -V 7 hilly4
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.000823847
+   9.39s real    6.79s user    0.19s system 
+
+time ../real2spl -n 4 -m 4 -2 -U 7 -V 7 hilly4
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.000822822
+  10.38s real    8.45s user    0.21s system 
+
+time ../real2spl -n 5 -m 5 -2 -U 7 -V 7 hilly4
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.0008227
+  13.24s real   12.08s user    0.23s system 
+
+time ../real2spl -n 6 -m 6 -2 -U 7 -V 7 hilly4
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.000822412
+  18.56s real   17.66s user    0.17s system 
+
+elhagyással:
+
+time ../real2spl -e hilly4 -n 3 -m 3 -2 -U 7 -V 7 hilly4
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.000827035
+   9.68s real    7.71s user    0.20s system 
+
+time ../real2spl -e hilly4 -n 4 -m 4 -2 -U 7 -V 7 hilly4
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.000826087
+  10.80s real    9.73s user    0.24s system 
+
+time ../real2spl -e hilly4 -n 5 -m 5 -2 -U 7 -V 7 hilly4 
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.000825964
+  14.26s real   12.88s user    0.17s system 
+
+time ../real2spl -e hilly4 -n 6 -m 6 -2 -U 7 -V 7 hilly4
+Writing file: hilly4.spl...
+done.
+average of squares of differences: 0.000825749
+  18.44s real   17.99s user    0.18s system
+
+1. funkcionál:
+
+time ../real2spl -6 hilly4
+Writing file: hilly4.spl...
+Step 0. (0): ...
+average of squares of differences: 0.000782305
+Step 1. (0.1): ...
+average of squares of differences: 0.000787221
+Step 2. (0.2): ...
+average of squares of differences: 0.000805135
+Step 3. (0.3): ...
+average of squares of differences: 0.000843383
+Step 4. (0.4): ...
+average of squares of differences: 0.000915435
+Step 5. (0.5): ...
+average of squares of differences: 0.00104811
+Step 6. (0.6): ...
+average of squares of differences: 0.00130126
+Step 7. (0.7): ...
+average of squares of differences: 0.00183311
+Step 8. (0.8): ...
+average of squares of differences: 0.00319741
+Step 9. (0.9): ...
+average of squares of differences: 0.00885778
+done.
+average of squares of differences: 0.00885778
+ 210.21s real  206.36s user    0.29s system 
+
+2. funkcionál:
+
+time ../real2spl -7 hilly4 
+Writing file: hilly4.spl...
+Step 0. (0): ...
+average of squares of differences: 0.000782305
+Step 1. (0.1): ...
+average of squares of differences: 0.000782779
+Step 2. (0.2): ...
+average of squares of differences: 0.000784055
+Step 3. (0.3): ...
+average of squares of differences: 0.000786028
+Step 4. (0.4): ...
+average of squares of differences: 0.000788714
+Step 5. (0.5): ...
+average of squares of differences: 0.000792273
+Step 6. (0.6): ...
+average of squares of differences: 0.000797124
+Step 7. (0.7): ...
+average of squares of differences: 0.000804355
+Step 8. (0.8): ...
+average of squares of differences: 0.000817491
+Step 9. (0.9): ...
+average of squares of differences: 0.000855946
+done.
+average of squares of differences: 0.000855946
+ 210.02s real  207.51s user    0.25s system
+
+3. funkcionál:
+
+time ../real2spl -8 hilly4
+Writing file: hilly4.spl...
+Step 0. (0): ...
+average of squares of differences: 0.000782305
+Step 1. (0.1): ...
+average of squares of differences: 0.000830932
+Step 2. (0.2): ...
+average of squares of differences: 0.000936797
+Step 3. (0.3): ...
+average of squares of differences: 0.00114931
+Step 4. (0.4): ...
+average of squares of differences: 0.00154534
+Step 5. (0.5): ...
+average of squares of differences: 0.00227639
+Step 6. (0.6): ...
+average of squares of differences: 0.00367989
+Step 7. (0.7): ...
+average of squares of differences: 0.00664362
+Step 8. (0.8): ...
+average of squares of differences: 0.0142264
+Step 9. (0.9): ...
+average of squares of differences: 0.0443699
+done.
+average of squares of differences: 0.0443699
+ 209.76s real  204.08s user    0.44s system 
+
+paraméterkorrekció:
+
+1. algoritmus:
+
+	Kontrollpontok száma: 10x10
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+time ../real2spl -3 hilly4
+Writing file: hilly4.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.000782305
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.000435505
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.000412292
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.000407838
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.000406018
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.000404926
+parameter correction...
+done.
+average of squares of differences: 0.000404394
+544.15user 0.49system 9:06.89elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (959major+1670minor)pagefaults 0swaps
+
+
+	Kontrollpontok száma: 5x5
+	~~~~~~~~~~~~~~~~~~~~~~~~~
+
+time ../real2spl -U 5 -V 5 -3 hilly4 
+Writing file: hilly4.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.000845686
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.000475236
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.000449928
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.000445224
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.000443503
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.000442596
+parameter correction...
+done.
+average of squares of differences: 0.000442133
+194.02user 0.26system 3:15.79elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (977major+786minor)pagefaults 0swaps
+
+
+2. algoritmus:
+
+	Kontrollpontok száma: 10x10
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+time ../real2spl -4 hilly4 
+Writing file: hilly4.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.000782305
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.000407178
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.000406005
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.000405344
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.00040472
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.000404069
+parameter correction...
+done.
+average of squares of differences: 0.000403791
+153.47user 0.46system 2:36.65elapsed 98%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (1363major+1691minor)pagefaults 0swaps
+
+	Kontrollpontok száma: 5x5
+	~~~~~~~~~~~~~~~~~~~~~~~~~
+
+time ../real2spl -U 5 -V 5 -4 hilly4 
+Writing file: hilly4.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.000845686
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.000445225
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.000442796
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.000442025
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.000441594
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.000441273
+parameter correction...
+done.
+average of squares of differences: 0.000441134
+23.05user 0.26system 0:24.68elapsed 94%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (1078major+786minor)pagefaults 0swaps
+
+
+
+3. algoritmus:
+
+	Kontrollpontok száma: 10x10
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+time ../real2spl -5 hilly4 
+Writing file: hilly4.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.000782305
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.000416325
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.000406385
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.00040523
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.000404573
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.000403986
+parameter correction...
+done.
+average of squares of differences: 0.000403673
+166.62user 0.44system 2:52.86elapsed 96%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (1629major+1691minor)pagefaults 0swaps
+
+
+	Kontrollpontok száma: 5x5
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+time ../real2spl -U 5 -V 5 -5 hilly4 
+Writing file: hilly4.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.000845686
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.000453117
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.000443136
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.000442046
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.00044157
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.000441236
+parameter correction...
+done.
+average of squares of differences: 0.0004411
+28.69user 0.29system 0:30.56elapsed 94%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (1217major+786minor)pagefaults 0swaps
+
+
+
+--------------------------------------------------
+complex.spl <- complex.real
+~~~~~~~~~~~
+
+time ../real2spl -1 -n 3 -m 3 -U 7 -V 7 complex
+Writing file: complex.spl...
+done.
+average of squares of differences: 0.000750532
+  16.82s real   10.69s user    0.36s system 
+
+time ../real2spl -2 -n 3 -m 3 -U 7 -V 7 complex
+Writing file: complex.spl...
+done.
+average of squares of differences: 0.000750532
+   9.71s real    6.50s user    0.27s system
+
+funkcionálok:
+~~~~~~~~~~~~~
+
+1. funkcionál:
+
+time ../real2spl -6 complex
+Writing file: complex.spl...
+Step 0. (0): ...
+average of squares of differences: 0.000721606
+Step 1. (0.1): ...
+average of squares of differences: 0.000739748
+Step 2. (0.2): ...
+average of squares of differences: 0.000802553
+Step 3. (0.3): ...
+average of squares of differences: 0.000928393
+Step 4. (0.4): ...
+average of squares of differences: 0.00114852
+Step 5. (0.5): ...
+average of squares of differences: 0.00151978
+Step 6. (0.6): ...
+average of squares of differences: 0.00215595
+Step 7. (0.7): ...
+average of squares of differences: 0.00331956
+Step 8. (0.8): ...
+average of squares of differences: 0.00577739
+Step 9. (0.9): ...
+average of squares of differences: 0.0131685
+done.
+average of squares of differences: 0.0131685
+
+2. funkcionál:
+
+time ../real2spl -7 complex
+Writing file: complex.spl...
+Step 0. (0): ...
+average of squares of differences: 0.000721606
+Step 1. (0.1): ...
+average of squares of differences: 0.00072448
+Step 2. (0.2): ...
+average of squares of differences: 0.000733203
+Step 3. (0.3): ...
+average of squares of differences: 0.000748307
+Step 4. (0.4): ...
+average of squares of differences: 0.000770995
+Step 5. (0.5): ...
+average of squares of differences: 0.000803624
+Step 6. (0.6): ...
+average of squares of differences: 0.000850984
+Step 7. (0.7): ...
+average of squares of differences: 0.000924157
+Step 8. (0.8): ...
+average of squares of differences: 0.00105571
+Step 9. (0.9): ...
+average of squares of differences: 0.00139825
+done.
+average of squares of differences: 0.00139825
+ 213.86s real  206.91s user    0.40s system 
+
+3. funkcionál:
+
+time ../real2spl -8 complex
+Writing file: complex.spl...
+Step 0. (0): ...
+average of squares of differences: 0.000721606
+Step 1. (0.1): ...
+average of squares of differences: 0.000857692
+Step 2. (0.2): ...
+average of squares of differences: 0.00117463
+Step 3. (0.3): ...
+average of squares of differences: 0.00172296
+Step 4. (0.4): ...
+average of squares of differences: 0.00259923
+Step 5. (0.5): ...
+average of squares of differences: 0.00398552
+Step 6. (0.6): ...
+average of squares of differences: 0.00624844
+Step 7. (0.7): ...
+average of squares of differences: 0.0102342
+Step 8. (0.8): ...
+average of squares of differences: 0.0184297
+Step 9. (0.9): ...
+average of squares of differences: 0.0429893
+done.
+average of squares of differences: 0.0429893
+ 212.07s real  205.01s user    0.23s system 
+
+paraméterkorrekció:
+
+1. algoritmus:
+
+	Kontrollpontok száma: 10x10
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+time ../real2spl -3 complex
+Writing file: complex.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.000721606
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.000416356
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.000467436
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.000701758
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.00113716
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.00131683
+parameter correction...
+done.
+average of squares of differences: 0.00143833
+544.89user 0.51system 9:10.10elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (1549major+1670minor)pagefaults 0swaps
+
+	Kontrollpontok száma: 5x5
+	~~~~~~~~~~~~~~~~~~~~~~~~~
+
+time ../real2spl -U 5 -V 5 -3 complex
+Writing file: complex.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.00294967
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.00150967
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.00129486
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.00123009
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.00120066
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.00120114
+parameter correction...
+done.
+average of squares of differences: 0.00122973
+193.92user 0.17system 3:15.29elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (900major+786minor)pagefaults 0swaps
+
+
+2. algoritmus:
+
+	Kontrollpontok száma: 10x10
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+time ../real2spl -4 complex
+Writing file: complex.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.000721606
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.000322581
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.00031925
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.000317997
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.000317013
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.000316193
+parameter correction...
+done.
+average of squares of differences: 0.000315829
+153.55user 0.35system 2:36.31elapsed 98%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (1162major+1670minor)pagefaults 0swaps
+
+	Kontrollpontok száma: 5x5
+	~~~~~~~~~~~~~~~~~~~~~~~~~
+
+time ../real2spl -U 5 -V 5 -4 complex
+Writing file: complex.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.00294967
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.00140444
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.00123583
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.00117168
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.00113616
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.00111088
+parameter correction...
+done.
+average of squares of differences: 0.00110018
+23.06user 0.16system 0:24.57elapsed 94%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (1026major+786minor)pagefaults 0swaps
+
+
+3. algoritmus:
+
+	Kontrollpontok száma: 10x10
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+time ../real2spl -5 complex
+Writing file: complex.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.000721606
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.000336517
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.000320342
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.000318249
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.00031717
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.000316334
+parameter correction...
+done.
+average of squares of differences: 0.000315948
+167.04user 0.36system 2:49.11elapsed 98%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (1185major+1670minor)pagefaults 0swaps
+
+	Kontrollpontok száma: 5x5
+	~~~~~~~~~~~~~~~~~~~~~~~~~
+
+time ../real2spl -U 5 -V 5 -5 complex
+Writing file: complex.spl...
+Step 1:
+least squares method...
+average of squares of differences: 0.00294967
+parameter correction...
+Step 2:
+least squares method...
+average of squares of differences: 0.00148787
+parameter correction...
+Step 3:
+least squares method...
+average of squares of differences: 0.00125694
+parameter correction...
+Step 4:
+least squares method...
+average of squares of differences: 0.0011884
+parameter correction...
+Step 5:
+least squares method...
+average of squares of differences: 0.00115166
+parameter correction...
+Step 6:
+least squares method...
+average of squares of differences: 0.00112544
+parameter correction...
+done.
+average of squares of differences: 0.00111393
+28.59user 0.26system 0:31.02elapsed 93%CPU (0avgtext+0avgdata 0maxresident)k
+0inputs+0outputs (1252major+786minor)pagefaults 0swaps
